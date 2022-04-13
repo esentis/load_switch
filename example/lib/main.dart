@@ -16,7 +16,7 @@ class _MyAppState extends State<MyApp> {
   bool value = false;
 
   Future<bool> _getFuture() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
+    await Future.delayed(const Duration(seconds: 2));
     return !value;
   }
 
@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: LoadSwitch(
         value: value,
-        future: _getFuture(),
+        future: _getFuture,
         onChange: (v) {
           value = v;
           print('Value changed to $v');
