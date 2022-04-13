@@ -1,5 +1,5 @@
 name: load_switch
-description: A highly customizable switch with a loading state.
+description: A highly customizable toggle switch with a loading state.
 version: 1.0.0
 homepage:
 
