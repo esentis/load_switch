@@ -1,7 +1,7 @@
 name: load_switch
 description: A highly customizable toggle switch with a loading state.
 version: 1.0.0
-homepage:
+homepage: https://github.com/esentis/load_switch
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
