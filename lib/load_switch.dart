@@ -39,7 +39,7 @@ class LoadSwitch extends StatefulWidget {
   /// The main [Future] with [bool] return type, which triggers when tapping the switch.
   ///
   /// The returned value represents the new state of the switch.
-  final Future<bool> future;
+  final Future<bool> Function() future;
 
   /// The width of the loading spinner.
   final double spinStrokeWidth;
@@ -132,7 +132,9 @@ class _LoadSwitchState extends State<LoadSwitch> {
                   setState(() {});
 
                   // Waiting for the user's future to complete.
-                  value = await widget.future;
+                  print('BEFORE WAIT');
+                  value = await widget.future.call();
+                  print('AFTER WAIT');
                   currentWidth = maxWidth;
                   loading = false;
                   widget.onChange(value);
