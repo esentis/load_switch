@@ -130,11 +130,8 @@ class _LoadSwitchState extends State<LoadSwitch> {
                   loading = true;
                   // Toggling loading.
                   setState(() {});
-
                   // Waiting for the user's future to complete.
-                  print('BEFORE WAIT');
                   value = await widget.future.call();
-                  print('AFTER WAIT');
                   currentWidth = maxWidth;
                   loading = false;
                   widget.onChange(value);
