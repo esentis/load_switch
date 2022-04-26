@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Load Switch Example',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

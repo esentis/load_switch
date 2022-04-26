@@ -97,6 +97,7 @@ class LoadSwitch extends StatefulWidget {
 
   /// Whether to add a blur effect when loading.
   final bool loadingHasBlur;
+
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
