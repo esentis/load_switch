@@ -225,7 +225,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
             ),
           ),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
