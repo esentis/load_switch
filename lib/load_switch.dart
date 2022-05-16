@@ -120,106 +120,102 @@ class _LoadSwitchState extends State<LoadSwitch> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: GestureDetector(
-          onTap: loading
-              ? null
-              : () async {
-                  widget.onTap(value);
-                  currentWidth = minHeight;
-                  loading = true;
-                  // Toggling loading.
-                  setState(() {});
-                  // Waiting for the user's future to complete.
-                  value = await widget.future.call();
-                  currentWidth = maxWidth;
-                  loading = false;
-                  widget.onChange(value);
-                  setState(() {});
-                },
-          child: AnimatedContainer(
-            width: currentWidth,
-            duration: const Duration(milliseconds: 250),
+    return GestureDetector(
+      onTap: loading
+          ? null
+          : () async {
+              widget.onTap(value);
+              currentWidth = minHeight;
+              loading = true;
+              // Toggling loading.
+              setState(() {});
+              // Waiting for the user's future to complete.
+              value = await widget.future.call();
+              currentWidth = maxWidth;
+              loading = false;
+              widget.onChange(value);
+              setState(() {});
+            },
+      child: AnimatedContainer(
+        width: currentWidth,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOutSine,
+        constraints: BoxConstraints(
+          maxWidth: maxWidth,
+          maxHeight: widget.height,
+        ),
+        decoration: BoxDecoration(
+          color: loading
+              ? widget.neutralColor
+              : value
+                  ? widget.trueColor
+                  : widget.falseColor,
+          borderRadius: BorderRadius.circular(360),
+          border: Border.all(
+            color: widget.borderColor,
+          ),
+          boxShadow: [
+            if (widget.loadingHasBlur)
+              BoxShadow(
+                blurRadius: loading ? widget.loadingBlurRadius : 0,
+                spreadRadius: loading ? widget.loadingSpreadRadius : 0,
+                color: widget.loadingBlurColor,
+                blurStyle: BlurStyle.normal,
+              )
+          ],
+        ),
+        child: Center(
+          child: AnimatedAlign(
+            duration: Duration(milliseconds: loading ? 450 : 150),
             curve: Curves.easeInOutSine,
-            constraints: BoxConstraints(
-              maxWidth: maxWidth,
-              maxHeight: widget.height,
-            ),
-            decoration: BoxDecoration(
-              color: loading
-                  ? widget.neutralColor
-                  : value
-                      ? widget.trueColor
-                      : widget.falseColor,
-              borderRadius: BorderRadius.circular(360),
-              border: Border.all(
-                color: widget.borderColor,
+            alignment: loading
+                ? Alignment.center
+                : value
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+            child: AnimatedPadding(
+              duration: Duration(milliseconds: loading ? 450 : 150),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.symmetric(
+                vertical: loading ? 4 : widget.thumbPadding,
+                horizontal: loading ? 4 : 0,
               ),
-              boxShadow: [
-                if (widget.loadingHasBlur)
-                  BoxShadow(
-                    blurRadius: loading ? widget.loadingBlurRadius : 0,
-                    spreadRadius: loading ? widget.loadingSpreadRadius : 0,
-                    color: widget.loadingBlurColor,
-                    blurStyle: BlurStyle.normal,
-                  )
-              ],
-            ),
-            child: Center(
-              child: AnimatedAlign(
-                duration: Duration(milliseconds: loading ? 450 : 150),
-                curve: Curves.easeInOutSine,
-                alignment: loading
-                    ? Alignment.center
-                    : value
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                child: AnimatedPadding(
-                  duration: Duration(milliseconds: loading ? 450 : 150),
-                  curve: Curves.easeInOut,
-                  padding: EdgeInsets.symmetric(
-                    vertical: loading ? 4 : widget.thumbPadding,
-                    horizontal: loading ? 4 : 0,
-                  ),
-                  child: SizedBox(
-                    width: widget.height,
-                    child: Stack(
-                      children: [
-                        if (loading)
-                          Center(
-                            child: SizedBox(
-                              width: widget.height,
-                              height: widget.height,
-                              child: CircularProgressIndicator(
-                                strokeWidth: widget.spinStrokeWidth,
-                                color: widget.spinColor,
-                              ),
-                            ),
-                          ),
-                        Center(
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 550),
-                            curve: Curves.easeInOutSine,
-                            width: widget.height,
-                            height: widget.height,
-                            decoration: BoxDecoration(
-                              color: loading
-                                  ? widget.thumbColorLoading
-                                  : value
-                                      ? widget.thumbColorTrue
-                                      : widget.thumbColorFalse,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: widget.thumbBorderColor,
-                                width: widget.thumbBorderWidth,
-                              ),
-                            ),
+              child: SizedBox(
+                width: widget.height,
+                child: Stack(
+                  children: [
+                    if (loading)
+                      Center(
+                        child: SizedBox(
+                          width: widget.height,
+                          height: widget.height,
+                          child: CircularProgressIndicator(
+                            strokeWidth: widget.spinStrokeWidth,
+                            color: widget.spinColor,
                           ),
                         ),
-                      ],
+                      ),
+                    Center(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 550),
+                        curve: Curves.easeInOutSine,
+                        width: widget.height,
+                        height: widget.height,
+                        decoration: BoxDecoration(
+                          color: loading
+                              ? widget.thumbColorLoading
+                              : value
+                                  ? widget.thumbColorTrue
+                                  : widget.thumbColorFalse,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.thumbBorderColor,
+                            width: widget.thumbBorderWidth,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
