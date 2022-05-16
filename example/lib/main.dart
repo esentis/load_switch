@@ -27,17 +27,22 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoadSwitch(
-        value: value,
-        future: _getFuture,
-        onChange: (v) {
-          value = v;
-          print('Value changed to $v');
-          setState(() {});
-        },
-        onTap: (v) {
-          print('Tapping while value is $v');
-        },
+      home: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          LoadSwitch(
+            value: value,
+            future: _getFuture,
+            onChange: (v) {
+              value = v;
+              print('Value changed to $v');
+              setState(() {});
+            },
+            onTap: (v) {
+              print('Tapping while value is $v');
+            },
+          ),
+        ],
       ),
     );
   }
