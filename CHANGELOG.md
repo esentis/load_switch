@@ -1,4 +1,6 @@
-# [1.1.1] Minor changes
+# [1.2.0] Adds tests
+
+### [1.1.1] Minor changes
 
 - Updates flutter_lints dependency
 
