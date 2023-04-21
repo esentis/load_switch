@@ -8,32 +8,23 @@ class LoadSwitch extends StatefulWidget {
     required this.future,
     required this.onChange,
     required this.onTap,
-    this.width = 85,
+    this.width = 95,
     this.height = 50,
-    this.spinColor = Colors.blue,
-    this.spinStrokeWidth = 8,
-    this.falseColor = Colors.red,
-    this.trueColor = Colors.green,
-    this.neutralColor = Colors.grey,
-    this.thumbColorLoading = Colors.white,
-    this.thumbColorFalse = Colors.white,
-    this.thumbColorTrue = Colors.white,
-    this.thumbPadding = 2,
-    this.thumbBorderColor = Colors.white,
-    this.thumbBorderWidth = 1,
-    this.borderColor = Colors.transparent,
-    this.loadingBlurColor = Colors.grey,
-    this.loadingHasBlur = false,
-    this.loadingBlurRadius = 5,
-    this.loadingSpreadRadius = 5,
+    this.spinColor,
+    this.spinStrokeWidth = 2,
+    this.animationDuration,
+    this.thumbDecoration,
+    this.switchDecoration,
+    this.curveIn,
+    this.curveOut,
     Key? key,
   })  : assert(width >= height, "Width can't be less than the height."),
         super(key: key);
 
-  /// The width of the switch. Must be greater or equal to height.
+  /// The width of the switch. Must be greater or equal to height. Defaults to 95.
   final double width;
 
-  /// The height of the switch. Must be less or equal to width.
+  /// The height of the switch. Must be less or equal to width. Defaults to 50.
   final double height;
 
   /// The main [Future] with [bool] return type, which triggers when tapping the switch.
@@ -45,46 +36,7 @@ class LoadSwitch extends StatefulWidget {
   final double spinStrokeWidth;
 
   /// The color of the loading spinner.
-  final Color spinColor;
-
-  /// The background color of the switch on true state.
-  final Color trueColor;
-
-  /// The background color of the switch on false state.
-  final Color falseColor;
-
-  /// The thumb color of the switch when loading.
-  final Color thumbColorLoading;
-
-  /// The thumb color of the switch when on true state.
-  final Color thumbColorTrue;
-
-  /// The thumb color of the switch when on false state.
-  final Color thumbColorFalse;
-
-  /// The border color of the thumb.
-  final Color thumbBorderColor;
-
-  /// The width of thumb's border if border is present.
-  final double thumbBorderWidth;
-
-  /// The vertical padding of the thumb on idle state (true or false).
-  final double thumbPadding;
-
-  /// The blur color when loading if [loadingHasBlur].
-  final Color loadingBlurColor;
-
-  /// The blur radius if [loadingHasBlur].
-  final double loadingBlurRadius;
-
-  /// The spread radius if [loadingHasBlur].
-  final double loadingSpreadRadius;
-
-  /// The border color of the switch.
-  final Color borderColor;
-
-  /// The neutral color showing when the switch is loading. Defaults to Colors.grey[400].
-  final Color neutralColor;
+  final Color Function(bool value)? spinColor;
 
   /// The callback when [future] has finished loading. Returns the response [bool] of the [future].
   final Function(bool) onChange;
@@ -95,131 +47,120 @@ class LoadSwitch extends StatefulWidget {
   /// Current value of the switch.
   final bool value;
 
-  /// Whether to add a blur effect when loading.
-  final bool loadingHasBlur;
+  /// The duration of the switch animation. Defaults to 250ms.
+  final Duration? animationDuration;
+
+  /// The curve of the switch animation when going in loading state.
+  final Curve? curveIn;
+
+  /// The curve of the switch animation when going out loading state.
+  final Curve? curveOut;
+
+  /// The decoration of the thumb.
+  final Decoration Function(bool value)? switchDecoration;
+
+  /// The decoration of the thumb.
+  final Decoration Function(bool value)? thumbDecoration;
 
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
 
 class _LoadSwitchState extends State<LoadSwitch> {
-  bool loading = false;
-  late bool value;
+  bool _loading = false;
+  bool _value = false;
 
-  late double currentWidth;
-  late double maxWidth;
-  late double minHeight;
   @override
   void initState() {
     super.initState();
-    value = widget.value;
-    minHeight = widget.height;
-    maxWidth = widget.width;
-    currentWidth = loading ? minHeight : maxWidth;
+    _value = widget.value;
+  }
+
+  Future<void> _handleToggle() async {
+    setState(() {
+      _loading = true;
+    });
+
+    _value = await widget.future.call();
+
+    setState(() {
+      _loading = false;
+    });
+
+    widget.onTap(_value);
   }
 
   @override
   Widget build(BuildContext context) {
+    final switchSize = widget.height;
+    final collapsedWidth = switchSize;
+    final expandedWidth = widget.width;
+    final curve = _loading
+        ? widget.curveIn ?? Curves.easeIn
+        : widget.curveOut ?? Curves.easeInOut;
+
     return GestureDetector(
-      onTap: loading
-          ? null
-          : () async {
-              widget.onTap(value);
-              currentWidth = minHeight;
-              loading = true;
-              // Toggling loading.
-              setState(() {});
-              // Waiting for the user's future to complete.
-              value = await widget.future.call();
-              currentWidth = maxWidth;
-              loading = false;
-              widget.onChange(value);
-              setState(() {});
-            },
+      onTap: _loading ? null : _handleToggle,
       child: AnimatedContainer(
-        width: currentWidth,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOutSine,
-        constraints: BoxConstraints(
-          maxWidth: maxWidth,
-          maxHeight: widget.height,
-        ),
-        decoration: BoxDecoration(
-          color: loading
-              ? widget.neutralColor
-              : value
-                  ? widget.trueColor
-                  : widget.falseColor,
-          borderRadius: BorderRadius.circular(360),
-          border: Border.all(
-            color: widget.borderColor,
-          ),
-          boxShadow: [
-            if (widget.loadingHasBlur)
-              BoxShadow(
-                blurRadius: loading ? widget.loadingBlurRadius : 0,
-                spreadRadius: loading ? widget.loadingSpreadRadius : 0,
-                color: widget.loadingBlurColor,
-                blurStyle: BlurStyle.normal,
-              )
-          ],
-        ),
-        child: Center(
-          child: AnimatedAlign(
-            duration: Duration(milliseconds: loading ? 450 : 150),
-            curve: Curves.easeInOutSine,
-            alignment: loading
-                ? Alignment.center
-                : value
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-            child: AnimatedPadding(
-              duration: Duration(milliseconds: loading ? 450 : 150),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.symmetric(
-                vertical: loading ? 4 : widget.thumbPadding,
-                horizontal: loading ? 4 : 0,
+        width: _loading ? collapsedWidth : expandedWidth,
+        height: switchSize,
+        duration: widget.animationDuration ?? const Duration(milliseconds: 250),
+        curve: curve,
+        decoration: widget.switchDecoration != null
+            ? widget.switchDecoration!(_value)
+            : BoxDecoration(
+                color: _value ? Colors.green : Colors.red,
+                borderRadius: BorderRadius.circular(switchSize / 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 5,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
-              child: SizedBox(
-                width: widget.height,
-                child: Stack(
-                  children: [
-                    if (loading)
-                      Center(
-                        child: SizedBox(
-                          width: widget.height,
-                          height: widget.height,
-                          child: CircularProgressIndicator(
-                            strokeWidth: widget.spinStrokeWidth,
-                            color: widget.spinColor,
+        child: Stack(
+          children: [
+            AnimatedAlign(
+              alignment: _loading
+                  ? Alignment.center
+                  : _value
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+              duration:
+                  widget.animationDuration ?? const Duration(milliseconds: 250),
+              curve: curve,
+              child: Container(
+                width: switchSize,
+                height: switchSize,
+                decoration: widget.thumbDecoration != null
+                    ? widget.thumbDecoration!(_value)
+                    : BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 5,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 1),
                           ),
-                        ),
+                        ],
                       ),
-                    Center(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 550),
-                        curve: Curves.easeInOutSine,
-                        width: widget.height,
-                        height: widget.height,
-                        decoration: BoxDecoration(
-                          color: loading
-                              ? widget.thumbColorLoading
-                              : value
-                                  ? widget.thumbColorTrue
-                                  : widget.thumbColorFalse,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: widget.thumbBorderColor,
-                            width: widget.thumbBorderWidth,
-                          ),
+                child: _loading
+                    ? CircularProgressIndicator(
+                        strokeWidth: widget.spinStrokeWidth,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          widget.spinColor != null
+                              ? widget.spinColor!(_value)
+                              : Colors.blue,
                         ),
-                      ),
-                    ),
-                  ],
-                ),
+                      )
+                    : null,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
