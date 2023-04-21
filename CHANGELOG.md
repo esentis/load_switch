@@ -1,4 +1,12 @@
-# [1.2.0] Adds tests
+### [2.0.0] Breaking changes
+
+- Simplifies API by removing redundant parameters.
+- Fixes dimension issues when specifying height and width to the switch.
+- Removes tests for now
+
+Check the README for the examples.
+
+### [1.2.0] Adds tests
 
 ### [1.1.1] Minor changes
 
