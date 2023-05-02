@@ -76,6 +76,16 @@ class _LoadSwitchState extends State<LoadSwitch> {
     _value = widget.value;
   }
 
+  @override
+  void didUpdateWidget(LoadSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      setState(() {
+        _value = widget.value;
+      });
+    }
+  }
+
   Future<void> _handleToggle() async {
     setState(() {
       _loading = true;
