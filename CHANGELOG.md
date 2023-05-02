@@ -1,3 +1,7 @@
+### [2.0.1] Bug fixes
+
+- Fixes switch not updating when `value` was changed
+
 ### [2.0.0] Breaking changes
 
 - Simplifies API by removing redundant parameters.
