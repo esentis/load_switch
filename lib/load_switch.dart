@@ -17,6 +17,7 @@ class LoadSwitch extends StatefulWidget {
     this.switchDecoration,
     this.curveIn,
     this.curveOut,
+    this.isLoading,
     Key? key,
   })  : assert(width >= height, "Width can't be less than the height."),
         super(key: key);
@@ -62,6 +63,9 @@ class LoadSwitch extends StatefulWidget {
   /// The decoration of the thumb.
   final Decoration Function(bool value)? thumbDecoration;
 
+  /// Manually change the loading state of the switch.
+  final bool? isLoading;
+
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
@@ -74,14 +78,17 @@ class _LoadSwitchState extends State<LoadSwitch> {
   void initState() {
     super.initState();
     _value = widget.value;
+    _loading = widget.isLoading ?? _loading;
   }
 
   @override
   void didUpdateWidget(LoadSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
+    if (oldWidget.value != widget.value ||
+        oldWidget.isLoading != widget.isLoading) {
       setState(() {
         _value = widget.value;
+        _loading = widget.isLoading ?? _loading;
       });
     }
   }
