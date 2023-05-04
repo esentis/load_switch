@@ -1,3 +1,7 @@
+### [2.0.2] New features
+
+- Adds `isLoading` flag to manually change the loading state when needed
+
 ### [2.0.1] Bug fixes
 
 - Fixes switch not updating when `value` was changed
