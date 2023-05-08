@@ -12,6 +12,7 @@ class LoadSwitch extends StatefulWidget {
     this.height = 50,
     this.spinColor,
     this.spinStrokeWidth = 2,
+    this.thumbSizeRatio = 1,
     this.animationDuration,
     this.thumbDecoration,
     this.switchDecoration,
@@ -20,6 +21,8 @@ class LoadSwitch extends StatefulWidget {
     this.isLoading,
     Key? key,
   })  : assert(width >= height, "Width can't be less than the height."),
+        assert(thumbSizeRatio > 0 && thumbSizeRatio <= 1,
+            "Thumb size ratio must be between 0 and 1."),
         super(key: key);
 
   /// The width of the switch. Must be greater or equal to height. Defaults to 95.
@@ -65,6 +68,9 @@ class LoadSwitch extends StatefulWidget {
 
   /// Manually change the loading state of the switch.
   final bool? isLoading;
+
+  /// The ratio of the thumb size to the switch size. Defaults to 1.
+  final double thumbSizeRatio;
 
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
@@ -116,6 +122,9 @@ class _LoadSwitchState extends State<LoadSwitch> {
         ? widget.curveIn ?? Curves.easeIn
         : widget.curveOut ?? Curves.easeInOut;
 
+    final thumbSize = switchSize * widget.thumbSizeRatio;
+    final thumbPadding = (switchSize - thumbSize) / 2;
+
     return GestureDetector(
       onTap: _loading ? null : _handleToggle,
       child: AnimatedContainer(
@@ -148,33 +157,36 @@ class _LoadSwitchState extends State<LoadSwitch> {
               duration:
                   widget.animationDuration ?? const Duration(milliseconds: 250),
               curve: curve,
-              child: Container(
-                width: switchSize,
-                height: switchSize,
-                decoration: widget.thumbDecoration != null
-                    ? widget.thumbDecoration!(_value)
-                    : BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 5,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                child: _loading
-                    ? CircularProgressIndicator(
-                        strokeWidth: widget.spinStrokeWidth,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          widget.spinColor != null
-                              ? widget.spinColor!(_value)
-                              : Colors.blue,
+              child: Padding(
+                padding: EdgeInsets.all(thumbPadding),
+                child: Container(
+                  width: thumbSize,
+                  height: thumbSize,
+                  decoration: widget.thumbDecoration != null
+                      ? widget.thumbDecoration!(_value)
+                      : BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                         ),
-                      )
-                    : null,
+                  child: _loading
+                      ? CircularProgressIndicator(
+                          strokeWidth: widget.spinStrokeWidth,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.spinColor != null
+                                ? widget.spinColor!(_value)
+                                : Colors.blue,
+                          ),
+                        )
+                      : null,
+                ),
               ),
             ),
           ],
