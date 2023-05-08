@@ -1,3 +1,15 @@
+### [2.0.3] New features
+
+- Adds `thumbSizeRatio` (0 - 1) to control the size of the thumb
+
+Default:
+
+<img src="https://i.imgur.com/LdHfQU4.png" width="350px"></img>
+
+`thumbSizeRation = 0.8`
+
+<img src="https://i.imgur.com/0FJ185A.png" width="350px"></img>
+
 ### [2.0.2] New features
 
 - Adds `isLoading` flag to manually change the loading state when needed

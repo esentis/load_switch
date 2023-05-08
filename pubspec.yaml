@@ -1,6 +1,6 @@
 name: load_switch
 description: A highly customizable toggle switch with a loading state. Useful when getting data from remote calls.
-version: 2.0.2
+version: 2.0.3
 homepage: https://github.com/esentis/load_switch
 
 environment:
