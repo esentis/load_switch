@@ -1,3 +1,5 @@
+### [2.0.4] Adds screenshots
+
 ### [2.0.3] New features
 
 - Adds `thumbSizeRatio` (0 - 1) to control the size of the thumb
