@@ -3,6 +3,14 @@ description: A highly customizable toggle switch with a loading state. Useful wh
 version: 2.0.4
 homepage: https://github.com/esentis/load_switch
 
+screenshots:
+  - description: "First style of load switch"
+    path: screenshots/1.gif
+  - description: "Second style of load switch"
+    path: screenshots/2.gif
+  - description: "Third style of load switch"
+    path: screenshots/3.gif
+
 environment:
   sdk: ">=2.16.2 <4.0.0"
   flutter: ">=1.17.0"

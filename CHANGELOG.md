@@ -1,3 +1,5 @@
+### [2.0.5] Fixes screenshots
+
 ### [2.0.4] Adds screenshots & Allows higher than 3.0.0 SDK version
 
 ### [2.0.3] New features
