@@ -4,7 +4,7 @@ version: 2.0.4
 homepage: https://github.com/esentis/load_switch
 
 environment:
-  sdk: ">=2.16.2 <3.0.0"
+  sdk: ">=2.16.2 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
