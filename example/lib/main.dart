@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:load_switch/load_switch.dart';
 
@@ -16,9 +17,13 @@ class _MyAppState extends State<MyApp> {
   bool value = false;
 
   Future<bool> _getFuture() async {
-    print('Calling futute...');
+    if (kDebugMode) {
+      print('Calling futute...');
+    }
     await Future.delayed(const Duration(seconds: 2));
-    print('Future returned.');
+    if (kDebugMode) {
+      print('Future returned.');
+    }
     value = !value;
     return value;
   }
@@ -75,11 +80,15 @@ class _MyAppState extends State<MyApp> {
             ),
             onChange: (v) {
               value = v;
-              print('Value changed to $v');
+              if (kDebugMode) {
+                print('Value changed to $v');
+              }
               setState(() {});
             },
             onTap: (v) {
-              print('Tapping while value is $v');
+              if (kDebugMode) {
+                print('Tapping while value is $v');
+              }
             },
           ),
         ],
