@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
             },
             onTap: (v) {
               if (kDebugMode) {
-                print('Tapping while value is $v');
+                debugPrint('Tapping while value is $v');
               }
             },
           ),

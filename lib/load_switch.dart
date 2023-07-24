@@ -36,7 +36,7 @@ class LoadSwitch extends StatefulWidget {
   /// The returned value represents the new state of the switch.
   final Future<bool> Function() future;
 
-  /// The width of the loading spinner.
+  /// The width of the loading spinner. Defaults to 2.
   final double spinStrokeWidth;
 
   /// The color of the loading spinner.
