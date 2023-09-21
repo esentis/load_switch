@@ -1,3 +1,8 @@
+### [2.0.6] New features
+
+- Adds new parameter `isActive` to choose whether the toggle is active and can be interacted
+- Tweaks `switchDecoration` & `thumbDecoration` to also expose the activity status
+
 ### [2.0.5] Fixes screenshots
 
 ### [2.0.4] Adds screenshots & Allows higher than 3.0.0 SDK version
