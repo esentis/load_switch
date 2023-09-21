@@ -19,6 +19,7 @@ class LoadSwitch extends StatefulWidget {
     this.curveIn,
     this.curveOut,
     this.isLoading,
+    this.isActive = true,
     Key? key,
   })  : assert(width >= height, "Width can't be less than the height."),
         assert(thumbSizeRatio > 0 && thumbSizeRatio <= 1,
@@ -61,13 +62,16 @@ class LoadSwitch extends StatefulWidget {
   final Curve? curveOut;
 
   /// The decoration of the thumb.
-  final Decoration Function(bool value)? switchDecoration;
+  final Decoration Function(bool value, bool isActive)? switchDecoration;
 
   /// The decoration of the thumb.
-  final Decoration Function(bool value)? thumbDecoration;
+  final Decoration Function(bool value, bool isActive)? thumbDecoration;
 
   /// Manually change the loading state of the switch.
   final bool? isLoading;
+
+  /// Whether the toggle is active or not. If null, the switch will be active.
+  final bool isActive;
 
   /// The ratio of the thumb size to the switch size. Defaults to 1.
   final double thumbSizeRatio;
@@ -126,16 +130,20 @@ class _LoadSwitchState extends State<LoadSwitch> {
     final thumbPadding = (switchSize - thumbSize) / 2;
 
     return GestureDetector(
-      onTap: _loading ? null : _handleToggle,
+      onTap: _loading || !widget.isActive ? null : _handleToggle,
       child: AnimatedContainer(
         width: _loading ? collapsedWidth : expandedWidth,
         height: switchSize,
         duration: widget.animationDuration ?? const Duration(milliseconds: 250),
         curve: curve,
         decoration: widget.switchDecoration != null
-            ? widget.switchDecoration!(_value)
+            ? widget.switchDecoration!(_value, widget.isActive)
             : BoxDecoration(
-                color: _value ? Colors.green : Colors.red,
+                color: widget.isActive
+                    ? _value
+                        ? Colors.green
+                        : Colors.red
+                    : Colors.grey[300],
                 borderRadius: BorderRadius.circular(switchSize / 2),
                 boxShadow: [
                   BoxShadow(
@@ -163,7 +171,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
                   width: thumbSize,
                   height: thumbSize,
                   decoration: widget.thumbDecoration != null
-                      ? widget.thumbDecoration!(_value)
+                      ? widget.thumbDecoration!(_value, widget.isActive)
                       : BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
