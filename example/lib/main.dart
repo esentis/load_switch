@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool value = false;
-
+  bool thumbStatus = true;
   Future<bool> _getFuture() async {
     if (kDebugMode) {
       print('Calling futute...');
@@ -35,24 +35,31 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Row(
+      home: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           LoadSwitch(
             value: value,
+            isActive: thumbStatus,
             future: _getFuture,
             curveIn: Curves.easeInBack,
             curveOut: Curves.easeOutBack,
             animationDuration: const Duration(milliseconds: 500),
-            switchDecoration: (value) => BoxDecoration(
-              color: value ? Colors.green[100] : Colors.red[100],
+            switchDecoration: (value, isActive) => BoxDecoration(
+              color: isActive
+                  ? value
+                      ? Colors.green[100]
+                      : Colors.red[100]
+                  : Colors.grey[300],
               borderRadius: BorderRadius.circular(30),
               shape: BoxShape.rectangle,
               boxShadow: [
                 BoxShadow(
-                  color: value
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.red.withOpacity(0.2),
+                  color: isActive
+                      ? value
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.red.withOpacity(0.2)
+                      : Colors.grey,
                   spreadRadius: 5,
                   blurRadius: 7,
                   offset: const Offset(0, 3), // changes position of shadow
@@ -63,15 +70,17 @@ class _MyAppState extends State<MyApp> {
                 ? const Color.fromARGB(255, 41, 232, 31)
                 : const Color.fromARGB(255, 255, 77, 77),
             spinStrokeWidth: 3,
-            thumbDecoration: (value) => BoxDecoration(
+            thumbDecoration: (value, isActive) => BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(30),
               shape: BoxShape.rectangle,
               boxShadow: [
                 BoxShadow(
-                  color: value
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.red.withOpacity(0.2),
+                  color: isActive
+                      ? value
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.red.withOpacity(0.2)
+                      : Colors.grey,
                   spreadRadius: 5,
                   blurRadius: 7,
                   offset: const Offset(0, 3), // changes position of shadow
@@ -91,6 +100,15 @@ class _MyAppState extends State<MyApp> {
               }
             },
           ),
+          const SizedBox(height: 20),
+          TextButton(
+              onPressed: () {
+                setState(() {
+                  thumbStatus = !thumbStatus;
+                });
+              },
+              child:
+                  Text(thumbStatus ? 'Deactivate toggle' : 'Activate toggle')),
         ],
       ),
     );
