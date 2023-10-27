@@ -1,3 +1,8 @@
+### [2.0.7] Bug fixes
+
+- `onTap(bool)` will trigger before the future, the `bool` is the value of the switch when tapped
+- `onChange(bool)` will trigger after the future, the `bool` is the response of the future
+
 ### [2.0.6] New features
 
 - Adds new parameter `isActive` to choose whether the toggle is active and can be interacted
