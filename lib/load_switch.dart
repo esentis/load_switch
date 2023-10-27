@@ -104,6 +104,8 @@ class _LoadSwitchState extends State<LoadSwitch> {
   }
 
   Future<void> _handleToggle() async {
+    widget.onTap(_value);
+
     setState(() {
       _loading = true;
     });
@@ -114,7 +116,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
       _loading = false;
     });
 
-    widget.onTap(_value);
+    widget.onChange(_value);
   }
 
   @override
