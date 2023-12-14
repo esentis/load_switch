@@ -106,6 +106,10 @@ class _LoadSwitchState extends State<LoadSwitch> {
   Future<void> _handleToggle() async {
     widget.onTap(_value);
 
+    if (_loading || !widget.isActive) {
+      return;
+    }
+
     setState(() {
       _loading = true;
     });
@@ -132,7 +136,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
     final thumbPadding = (switchSize - thumbSize) / 2;
 
     return GestureDetector(
-      onTap: _loading || !widget.isActive ? null : _handleToggle,
+      onTap: _handleToggle,
       child: AnimatedContainer(
         width: _loading ? collapsedWidth : expandedWidth,
         height: switchSize,

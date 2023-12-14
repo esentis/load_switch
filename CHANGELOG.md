@@ -1,3 +1,7 @@
+### [2.0.8] Bug fixes
+
+- `onTap(bool)` : Will always trigger even if the toggle is not active
+
 ### [2.0.7] Bug fixes
 
 - `onTap(bool)` will trigger before the future, the `bool` is the value of the switch when tapped
