@@ -96,12 +96,14 @@ lib/generated_plugin_registrant.dart
 
 ### VisualStudioCode ###
 .vscode/*
+.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
-
+.idea/*
+.idea
 # Local History for Visual Studio Code
 .history/
 
