@@ -8,6 +8,7 @@ class LoadSwitch extends StatefulWidget {
     required this.future,
     required this.onChange,
     required this.onTap,
+    this.onError,
     this.width = 95,
     this.height = 50,
     this.spinColor,
@@ -76,6 +77,9 @@ class LoadSwitch extends StatefulWidget {
   /// The ratio of the thumb size to the switch size. Defaults to 1.
   final double thumbSizeRatio;
 
+  /// The callback when an error occurs during the [future] execution.
+  final Function(Object)? onError;
+
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
@@ -114,11 +118,18 @@ class _LoadSwitchState extends State<LoadSwitch> {
       _loading = true;
     });
 
-    _value = await widget.future.call();
-
-    setState(() {
-      _loading = false;
-    });
+    try {
+      _value = await widget.future.call();
+    } catch (error) {
+      // If an error occurs, call the onError callback with the error.
+      widget.onError?.call(error);
+      // Optionally, you might want to set _value back to its previous state or handle it differently.
+    } finally {
+      // Ensure loading is turned off after the future completes or an error occurs.
+      setState(() {
+        _loading = false;
+      });
+    }
 
     widget.onChange(_value);
   }
