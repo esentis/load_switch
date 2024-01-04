@@ -1,3 +1,7 @@
+### [2.0.9]
+
+- `onError(error)` : Callback when the Future throws an error
+
 ### [2.0.8] Bug fixes
 
 - `onTap(bool)` : Will always trigger even if the toggle is not active
