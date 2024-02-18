@@ -85,14 +85,14 @@ class LoadSwitch extends StatefulWidget {
 }
 
 class _LoadSwitchState extends State<LoadSwitch> {
-  bool _loading = false;
-  bool _value = false;
+  late ValueNotifier<bool> _isLoading;
+  late ValueNotifier<bool> _switchValue;
 
   @override
   void initState() {
     super.initState();
-    _value = widget.value;
-    _loading = widget.isLoading ?? _loading;
+    _switchValue = ValueNotifier(widget.value);
+    _isLoading = ValueNotifier(widget.isLoading ?? false);
   }
 
   @override
@@ -100,38 +100,29 @@ class _LoadSwitchState extends State<LoadSwitch> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value ||
         oldWidget.isLoading != widget.isLoading) {
-      setState(() {
-        _value = widget.value;
-        _loading = widget.isLoading ?? _loading;
-      });
+      _switchValue.value = widget.value;
+      _isLoading.value = widget.isLoading ?? _isLoading.value;
     }
   }
 
   Future<void> _handleToggle() async {
-    widget.onTap(_value);
+    widget.onTap(_switchValue.value);
 
-    if (_loading || !widget.isActive) {
+    if (_isLoading.value || !widget.isActive) {
       return;
     }
 
-    setState(() {
-      _loading = true;
-    });
+    _isLoading.value = true;
 
     try {
-      _value = await widget.future.call();
+      _switchValue.value = await widget.future.call();
     } catch (error) {
-      // If an error occurs, call the onError callback with the error.
       widget.onError?.call(error);
-      // Optionally, you might want to set _value back to its previous state or handle it differently.
     } finally {
-      // Ensure loading is turned off after the future completes or an error occurs.
-      setState(() {
-        _loading = false;
-      });
+      _isLoading.value = false;
     }
 
-    widget.onChange(_value);
+    widget.onChange(_switchValue.value);
   }
 
   @override
@@ -139,84 +130,105 @@ class _LoadSwitchState extends State<LoadSwitch> {
     final switchSize = widget.height;
     final collapsedWidth = switchSize;
     final expandedWidth = widget.width;
-    final curve = _loading
-        ? widget.curveIn ?? Curves.easeIn
-        : widget.curveOut ?? Curves.easeInOut;
-
-    final thumbSize = switchSize * widget.thumbSizeRatio;
-    final thumbPadding = (switchSize - thumbSize) / 2;
 
     return GestureDetector(
       onTap: _handleToggle,
-      child: AnimatedContainer(
-        width: _loading ? collapsedWidth : expandedWidth,
-        height: switchSize,
-        duration: widget.animationDuration ?? const Duration(milliseconds: 250),
-        curve: curve,
-        decoration: widget.switchDecoration != null
-            ? widget.switchDecoration!(_value, widget.isActive)
-            : BoxDecoration(
-                color: widget.isActive
-                    ? _value
-                        ? Colors.green
-                        : Colors.red
-                    : Colors.grey[300],
-                borderRadius: BorderRadius.circular(switchSize / 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 5,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-        child: Stack(
-          children: [
-            AnimatedAlign(
-              alignment: _loading
-                  ? Alignment.center
-                  : _value
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-              duration:
-                  widget.animationDuration ?? const Duration(milliseconds: 250),
-              curve: curve,
-              child: Padding(
-                padding: EdgeInsets.all(thumbPadding),
-                child: Container(
-                  width: thumbSize,
-                  height: thumbSize,
-                  decoration: widget.thumbDecoration != null
-                      ? widget.thumbDecoration!(_value, widget.isActive)
-                      : BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              blurRadius: 5,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                  child: _loading
-                      ? CircularProgressIndicator(
-                          strokeWidth: widget.spinStrokeWidth,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.spinColor != null
-                                ? widget.spinColor!(_value)
-                                : Colors.blue,
-                          ),
-                        )
-                      : null,
-                ),
-              ),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isLoading,
+        builder: (_, loading, __) {
+          final curve = loading
+              ? widget.curveIn ?? Curves.easeIn
+              : widget.curveOut ?? Curves.easeInOut;
+          return AnimatedContainer(
+            width: loading ? collapsedWidth : expandedWidth,
+            height: switchSize,
+            duration:
+                widget.animationDuration ?? const Duration(milliseconds: 250),
+            curve: curve,
+            decoration: widget.switchDecoration
+                    ?.call(_switchValue.value, widget.isActive) ??
+                _defaultSwitchDecoration(
+                    _switchValue.value, widget.isActive, switchSize),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _switchValue,
+              builder: (_, value, __) {
+                final thumbSize = switchSize * widget.thumbSizeRatio;
+                final thumbPadding = (switchSize - thumbSize) / 2;
+                return Stack(
+                  children: [
+                    AnimatedAlign(
+                      alignment: loading
+                          ? Alignment.center
+                          : value
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                      duration: widget.animationDuration ??
+                          const Duration(milliseconds: 250),
+                      curve: curve,
+                      child: Padding(
+                        padding: EdgeInsets.all(thumbPadding),
+                        child: _buildThumb(loading, value, thumbSize),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+
+  BoxDecoration _defaultSwitchDecoration(
+      bool value, bool isActive, double switchSize) {
+    return BoxDecoration(
+      color: isActive
+          ? value
+              ? Colors.green
+              : Colors.red
+          : Colors.grey[300],
+      borderRadius: BorderRadius.circular(switchSize / 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.2),
+          blurRadius: 5,
+          spreadRadius: 1,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThumb(bool loading, bool value, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: widget.thumbDecoration?.call(value, widget.isActive) ??
+          _defaultThumbDecoration(),
+      child: loading
+          ? CircularProgressIndicator(
+              strokeWidth: widget.spinStrokeWidth,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                widget.spinColor?.call(value) ?? Colors.blue,
+              ),
+            )
+          : null,
+    );
+  }
+
+  BoxDecoration _defaultThumbDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.2),
+          blurRadius: 5,
+          spreadRadius: 1,
+          offset: const Offset(0, 1),
+        ),
+      ],
     );
   }
 }

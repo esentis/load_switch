@@ -1,6 +1,7 @@
 ### [2.0.9]
 
 - `onError(error)` : Callback when the Future throws an error
+- Internal code optimization and clean up
 
 ### [2.0.8] Bug fixes
 
