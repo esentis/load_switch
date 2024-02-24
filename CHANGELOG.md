@@ -1,3 +1,51 @@
+### [2.1.0] New spin styles
+
+- New parameter `style`. The library extends [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) internally adding some fancy spin animations. Keep in mind you can also edit the `thumbDecoration` & `switchDecoration` for different color & shapes. The examples have the default circular thumb with white color. The default style is `SpinStyle.material`.
+
+| material                                                | cupertino                                                 | chasingDots                                                   |
+| ------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| ![material](https://i.imgur.com/i80tb2n.gif "material") | ![cupertino](https://i.imgur.com/ciOjjIx.gif "cupertino") | ![chasingDots](https://i.imgur.com/VnVZ7yW.gif "chasingDots") |
+
+| circle                                              | cubeGrid                                                | dancingSquare                                                     |
+| --------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![circle](https://i.imgur.com/ePBR9xB.gif "circle") | ![cubeGrid](https://i.imgur.com/HhoyjuA.gif "cubeGrid") | ![dancingSquare](https://i.imgur.com/huQGF7f.gif "dancingSquare") |
+
+| doubleBounce                                                    | dualRing                                                | fadingCircle                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
+| ![doubleBounce](https://i.imgur.com/XoNKCUb.gif "doubleBounce") | ![dualRing](https://i.imgur.com/YODTtaw.gif "dualRing") | ![fadingCircle](https://i.imgur.com/xMFMI6F.gif "fadingCircle") |
+
+| fadingCube                                                  | fadingFour                                                  | fadingGrid                                                  |
+| ----------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| ![fadingCube](https://i.imgur.com/s6jqcBy.gif "fadingCube") | ![fadingFour](https://i.imgur.com/1gL9G70.gif "fadingFour") | ![fadingGrid](https://i.imgur.com/HLHTVRw.gif "fadingGrid") |
+
+| foldingCube                                                   | hourGlass                                                 | pianoWave                                                 |
+| ------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| ![foldingCube](https://i.imgur.com/OfOx9Ta.gif "foldingCube") | ![hourGlass](https://i.imgur.com/XuOZMuo.gif "hourGlass") | ![pianoWave](https://i.imgur.com/4omcY6m.gif "pianoWave") |
+
+| pouringHourGlass                                                        | pulse                                             | pulsingGrid                                                   |
+| ----------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------- |
+| ![pouringHourGlass](https://i.imgur.com/qaDYkEk.gif "pouringHourGlass") | ![pulse](https://i.imgur.com/XviSAH5.gif "pulse") | ![pulsingGrid](https://i.imgur.com/XkvLuSm.gif "pulsingGrid") |
+
+| pumpingHeart                                                    | ring                                            | ripple                                              |
+| --------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------- |
+| ![pumpingHeart](https://i.imgur.com/J6jG4pT.gif "pumpingHeart") | ![ring](https://i.imgur.com/nDKRcu9.gif "ring") | ![ripple](https://i.imgur.com/Cdz31l9.gif "ripple") |
+
+| rotatingCircle                                                      | rotatingPlain                                                     | spinningCircle                                                      |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| ![rotatingCircle](https://i.imgur.com/HFmZVvd.gif "rotatingCircle") | ![rotatingPlain](https://i.imgur.com/ZRw7ZAk.gif "rotatingPlain") | ![spinningCircle](https://i.imgur.com/7EvBfP4.gif "spinningCircle") |
+
+| spinningLines                                                     | squareCircle                                                    | threeBounce                                                   |
+| ----------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- |
+| ![spinningLines](https://i.imgur.com/bZdiHNM.gif "spinningLines") | ![squareCircle](https://i.imgur.com/OBJsoEO.gif "squareCircle") | ![threeBounce](https://i.imgur.com/suMlo79.gif "threeBounce") |
+
+| threeInOut                                                  | wanderingCubes                                                      | waveStart                                                 |
+| ----------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
+| ![threeInOut](https://i.imgur.com/Vz4QCWh.gif "threeInOut") | ![wanderingCubes](https://i.imgur.com/S7W2jHT.gif "wanderingCubes") | ![waveStart](https://i.imgur.com/Tnlsbdo.gif "waveStart") |
+
+| waveCenter                                                  | waveEnd                                               | waveSpinner                                                   |
+| ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------- |
+| ![waveCenter](https://i.imgur.com/MX7SHbN.gif "waveCenter") | ![waveEnd](https://i.imgur.com/BMLUprM.gif "waveEnd") | ![waveSpinner](https://i.imgur.com/9geWUc6.gif "waveSpinner") |
+
 ### [2.0.9]
 
 - `onError(error)` : Callback when the Future throws an error
