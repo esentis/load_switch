@@ -1,6 +1,43 @@
 library load_switch;
 
 import 'package:flutter/material.dart';
+import 'package:load_switch/spinner.dart';
+
+enum SpinStyle {
+  material,
+  cupertino,
+  chasingDots,
+  circle,
+  cubeGrid,
+  dancingSquare,
+  doubleBounce,
+  dualRing,
+  fadingCircle,
+  fadingCube,
+  fadingFour,
+  fadingGrid,
+  foldingCube,
+  hourGlass,
+  pianoWave,
+  pouringHourGlass,
+  pulse,
+  pulsingGrid,
+  pumpingHeart,
+  ring,
+  ripple,
+  rotatingCircle,
+  rotatingPlain,
+  spinningCircle,
+  spinningLines,
+  squareCircle,
+  threeBounce,
+  threeInOut,
+  wanderingCubes,
+  waveStart,
+  waveCenter,
+  waveEnd,
+  waveSpinner,
+}
 
 class LoadSwitch extends StatefulWidget {
   const LoadSwitch({
@@ -8,6 +45,7 @@ class LoadSwitch extends StatefulWidget {
     required this.future,
     required this.onChange,
     required this.onTap,
+    this.style = SpinStyle.material,
     this.onError,
     this.width = 95,
     this.height = 50,
@@ -80,11 +118,13 @@ class LoadSwitch extends StatefulWidget {
   /// The callback when an error occurs during the [future] execution.
   final Function(Object)? onError;
 
+  /// The style of the loading spinner. Defaults to [SpinStyle.material].
+  final SpinStyle style;
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
 
-class _LoadSwitchState extends State<LoadSwitch> {
+class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
   late ValueNotifier<bool> _isLoading;
   late ValueNotifier<bool> _switchValue;
 
@@ -167,7 +207,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
                       curve: curve,
                       child: Padding(
                         padding: EdgeInsets.all(thumbPadding),
-                        child: _buildThumb(loading, value, thumbSize),
+                        child: _buildThumb(loading, value, thumbSize, this),
                       ),
                     ),
                   ],
@@ -200,35 +240,35 @@ class _LoadSwitchState extends State<LoadSwitch> {
     );
   }
 
-  Widget _buildThumb(bool loading, bool value, double size) {
+  Widget _buildThumb(
+      bool loading, bool value, double size, TickerProvider vsync) {
     return Container(
       width: size,
       height: size,
       decoration: widget.thumbDecoration?.call(value, widget.isActive) ??
-          _defaultThumbDecoration(),
-      child: loading
-          ? CircularProgressIndicator(
-              strokeWidth: widget.spinStrokeWidth,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                widget.spinColor?.call(value) ?? Colors.blue,
+          BoxDecoration(
+            color: loading ? Colors.white : Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 5,
+                spreadRadius: 1,
+                offset: const Offset(0, 1),
               ),
+            ],
+          ),
+      child: loading
+          ? buildSpinner(
+              style: widget.style,
+              vsync: vsync,
+              value: value,
+              size: widget.height,
+              width: widget.spinStrokeWidth,
+              color: widget.spinColor?.call(value),
+              animationDuration: widget.animationDuration,
             )
           : null,
-    );
-  }
-
-  BoxDecoration _defaultThumbDecoration() {
-    return BoxDecoration(
-      color: Colors.white,
-      shape: BoxShape.circle,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
-          blurRadius: 5,
-          spreadRadius: 1,
-          offset: const Offset(0, 1),
-        ),
-      ],
     );
   }
 }
