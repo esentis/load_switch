@@ -2,6 +2,13 @@ name: load_switch
 description: A highly customizable toggle switch with a loading state. Useful when getting data from remote calls.
 version: 2.1.0
 homepage: https://github.com/esentis/load_switch
+topics:
+  - toggle
+  - switch
+  - ui
+  - widget
+  - flutter
+  - animation
 
 screenshots:
   - description: "First style of load switch"
