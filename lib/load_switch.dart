@@ -231,7 +231,7 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
       borderRadius: BorderRadius.circular(switchSize / 2),
       boxShadow: [
         BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.grey.withValues(alpha: 0.2),
           blurRadius: 5,
           spreadRadius: 1,
           offset: const Offset(0, 1),
@@ -251,7 +251,7 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
                 blurRadius: 5,
                 spreadRadius: 1,
                 offset: const Offset(0, 1),

@@ -74,7 +74,7 @@ class _DefaultStyleExampleState extends State<DefaultStyleExample> {
                   });
                 });
               },
-              child: Text('Start loading'),
+              child: const Text('Start loading'),
             ),
             TextButton(
               onPressed: () {
