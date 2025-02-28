@@ -1,3 +1,7 @@
+### [2.1.1] Refactor deprecated code
+
+- Replace `withOpacity` with `withValues`
+
 ### [2.1.0] New spin styles
 
 - New parameter `style`. The library extends [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) internally adding some fancy spin animations. Keep in mind you can also edit the `thumbDecoration` & `switchDecoration` for different color & shapes. The examples have the default circular thumb with white color. The default style is `SpinStyle.material`.
