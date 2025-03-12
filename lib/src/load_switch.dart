@@ -1,43 +1,8 @@
 library load_switch;
 
 import 'package:flutter/material.dart';
+import 'package:load_switch/src/spin_styles.dart';
 import 'package:load_switch/src/spinner.dart';
-
-enum SpinStyle {
-  material,
-  cupertino,
-  chasingDots,
-  circle,
-  cubeGrid,
-  dancingSquare,
-  doubleBounce,
-  dualRing,
-  fadingCircle,
-  fadingCube,
-  fadingFour,
-  fadingGrid,
-  foldingCube,
-  hourGlass,
-  pianoWave,
-  pouringHourGlass,
-  pulse,
-  pulsingGrid,
-  pumpingHeart,
-  ring,
-  ripple,
-  rotatingCircle,
-  rotatingPlain,
-  spinningCircle,
-  spinningLines,
-  squareCircle,
-  threeBounce,
-  threeInOut,
-  wanderingCubes,
-  waveStart,
-  waveCenter,
-  waveEnd,
-  waveSpinner,
-}
 
 class LoadSwitch extends StatefulWidget {
   const LoadSwitch({
