@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:load_switch/load_switch.dart';
+import 'package:load_switch/src/load_switch.dart';
 
 void main() {
   testWidgets('LoadSwitch changes value when tapped',
