@@ -96,6 +96,20 @@ onTap: (v) {
 ),
 ```
 
+### Controller Features
+
+You can use the `LoadSwitchController` to control and listen to the switch's state.
+
+| Feature                      | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `toggle()`                   | Toggle the switch value programmatically                       |
+| `executeWithLoading(future)` | Run an async operation with automatic loading state management |
+| `value` (get/set)            | Get or set the current switch value                            |
+| `isLoading` (get/set)        | Get or set the loading state                                   |
+| `isActive` (get/set)         | Get or set whether the switch is active                        |
+| `addListener(listener)`      | Listen to state changes in the controller                      |
+| `dispose()`                  | Clean up resources when no longer needed                       |
+
 ## Spin styles
 
 The library extends [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) internally adding some fancy spin animations. Keep in mind you can also edit the `thumbDecoration` & `switchDecoration` for different color & shapes. The examples have the default circular thumb with white color. The default style is `SpinStyle.material`.
