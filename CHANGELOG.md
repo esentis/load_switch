@@ -1,3 +1,14 @@
+### [2.2.0] Controller Support
+
+- Adds `LoadSwitchController` for programmatic control of the switch
+- Switch now supports both controlled and uncontrolled modes
+- Controller features:
+  - Programmatic value toggling via `toggle()` method
+  - Loading state management via `executeWithLoading()`
+  - External observation of state changes via `addListener()`
+  - Programmatic control of active state
+- Example usage with controller pattern included
+
 ### [2.1.1] Refactor deprecated code
 
 - Replace `withOpacity` with `withValues`
