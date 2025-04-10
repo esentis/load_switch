@@ -2,11 +2,13 @@
 <img src='https://i.imgur.com/i3rb7YT.gif'>
 </p>
 <p align="center">
- <img src="https://img.shields.io/pub/v/load_switch?color=637d0d&style=for-the-badge" alt="Version" /> <img src="https://img.shields.io/github/languages/code-size/esentis/load_switch?color=637d0d&style=for-the-badge&label=size" alt="Version" /></br><img src="https://github.com/esentis/load_switch/actions/workflows/publish.yml/badge.svg" alt="Publish to Pub.dev" />
+ <img src="https://img.shields.io/pub/v/load_switch?color=637d0d&style=for-the-badge&logo=flutter" alt="Version" /> <img src="https://img.shields.io/github/languages/code-size/esentis/load_switch?color=637d0d&style=for-the-badge&label=size" alt="Version" /></br><img src="https://github.com/esentis/load_switch/actions/workflows/publish.yml/badge.svg" alt="Publish to Pub.dev" />
 </br>
 </p>
 
-## Examples
+<p align="center">
+Show some love by dropping a ⭐ at GitHub </br>
+<a href="https://github.com/esentis/load_switch/stargazers"><img src="https://img.shields.io/github/stars/esentis/load_switch?style=for-the-badge&logo=github&color=637d0d" alt="HTML tutorial"></a>
 
 ```dart
 bool value = false;
@@ -93,6 +95,20 @@ onTap: (v) {
 },
 ),
 ```
+
+### Controller Features
+
+You can use the `LoadSwitchController` to control and listen to the switch's state.
+
+| Feature                      | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `toggle()`                   | Toggle the switch value programmatically                       |
+| `executeWithLoading(future)` | Run an async operation with automatic loading state management |
+| `value` (get/set)            | Get or set the current switch value                            |
+| `isLoading` (get/set)        | Get or set the loading state                                   |
+| `isActive` (get/set)         | Get or set whether the switch is active                        |
+| `addListener(listener)`      | Listen to state changes in the controller                      |
+| `dispose()`                  | Clean up resources when no longer needed                       |
 
 ## Spin styles
 

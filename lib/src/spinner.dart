@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:load_switch/load_switch.dart';
+import 'package:load_switch/src/spin_styles.dart';
 
 Widget buildSpinner({
   required SpinStyle style,

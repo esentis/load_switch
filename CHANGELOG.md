@@ -1,3 +1,18 @@
+### [2.2.0] Controller Support
+
+- Adds `LoadSwitchController` for programmatic control of the switch
+- Switch now supports both controlled and uncontrolled modes
+- Controller features:
+  - Programmatic value toggling via `toggle()` method
+  - Loading state management via `executeWithLoading()`
+  - External observation of state changes via `addListener()`
+  - Programmatic control of active state
+- Example usage with controller pattern included
+
+### [2.1.1] Refactor deprecated code
+
+- Replace `withOpacity` with `withValues`
+
 ### [2.1.0] New spin styles
 
 - New parameter `style`. The library extends [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) internally adding some fancy spin animations. Keep in mind you can also edit the `thumbDecoration` & `switchDecoration` for different color & shapes. The examples have the default circular thumb with white color. The default style is `SpinStyle.material`.

@@ -1,7 +1,13 @@
 name: load_switch
 description: A highly customizable toggle switch with a loading state. Useful when getting data from remote calls.
-version: 2.1.0
+version: 2.2.0
 homepage: https://github.com/esentis/load_switch
+topics:
+  - toggle
+  - switch
+  - ui
+  - widget
+  - animation
 
 screenshots:
   - description: "First style of load switch"
@@ -18,12 +24,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_spinkit: ^5.2.0
+  flutter_spinkit: ^5.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

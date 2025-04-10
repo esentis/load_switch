@@ -59,8 +59,8 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
                   BoxShadow(
                     color: isActive
                         ? value
-                            ? Colors.green.withOpacity(0.2)
-                            : Colors.red.withOpacity(0.2)
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.red.withValues(alpha: 0.2)
                         : Colors.grey,
                     spreadRadius: 5,
                     blurRadius: 7,
@@ -80,8 +80,8 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
                   BoxShadow(
                     color: isActive
                         ? value
-                            ? Colors.green.withOpacity(0.2)
-                            : Colors.red.withOpacity(0.2)
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.red.withValues(alpha: 0.2)
                         : Colors.grey,
                     spreadRadius: 5,
                     blurRadius: 7,
