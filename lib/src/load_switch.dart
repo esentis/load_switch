@@ -107,7 +107,7 @@ class LoadSwitch extends StatefulWidget {
 
 class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
   late LoadSwitchController _controller;
-  bool _internalController = false;
+  bool _isControllerInternal = false;
 
   @override
   void initState() {
@@ -119,7 +119,7 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
     if (widget.controller != null) {
       _controller = widget.controller!;
     } else {
-      _internalController = true;
+      _isControllerInternal = true;
       _controller = LoadSwitchController(
         initialValue: widget.value!,
         isLoading: widget.isLoading ?? false,
@@ -143,12 +143,12 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
       oldWidget.controller?.removeListener(_handleControllerChange);
       _controller.removeListener(_handleControllerChange);
 
-      if (_internalController) {
+      if (_isControllerInternal) {
         _controller.dispose();
       }
 
       _initializeController();
-    } else if (_internalController) {
+    } else if (_isControllerInternal) {
       // Update internal controller values if they changed externally
       if (widget.value != null && _controller.value != widget.value) {
         _controller.value = widget.value!;
@@ -169,7 +169,7 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
     }
 
     if (!_controller.isLoading && _controller.isActive) {
-      if (_internalController) {
+      if (_isControllerInternal) {
         _controller.isLoading = true;
 
         try {
@@ -197,7 +197,7 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.removeListener(_handleControllerChange);
-    if (_internalController) {
+    if (_isControllerInternal) {
       _controller.dispose();
     }
     super.dispose();
