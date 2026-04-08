@@ -1,3 +1,41 @@
+### [3.0.0] Major cleanup
+
+#### Breaking API changes
+
+- Replaces the overloaded `LoadSwitch` constructor with explicit
+  `LoadSwitch.managed` and `LoadSwitch.controlled` modes
+- Renames `future` to `onToggle` and `onChange` to `onChanged`
+- Splits `animationDuration` into `switchAnimationDuration` and
+  `spinnerAnimationDuration`
+- Changes `onError` to include both `Object` and `StackTrace`
+- Aligns `LoadSwitchController.executeWithLoading()` naming with the widget API
+
+#### Bug fixes
+
+- Fixes controller ownership bugs when swapping between managed and controlled
+  modes
+- Hardens async updates against dispose and stale controller writes
+- Prevents managed switches from becoming tappable again after a parent rebuild
+  while an async toggle is still in flight
+- Fixes spinner sizing, including the Cupertino spinner radius
+
+#### UI and accessibility
+
+- Adds keyboard activation support
+- Uses proper switch-style `toggled` semantics instead of checkbox-style
+  semantics
+
+#### Quality and tooling
+
+- Expands tests to cover controller behavior, lifecycle, async regressions,
+  semantics, and all spinner styles
+- Raises the minimum supported SDKs to Dart 3.6 and Flutter 3.27
+
+#### Docs and examples
+
+- Updates the README and examples for the new API
+- Migration guide for the breaking changes is available in the README
+
 ### [2.2.1] Bug fixes
 
 - Removes redundant `AnimationControllers` from toggle styles
