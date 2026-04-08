@@ -1,18 +1,19 @@
-library load_switch;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:load_switch/src/load_switch_controller.dart';
+import 'package:load_switch/src/load_switch_types.dart';
 import 'package:load_switch/src/spin_styles.dart';
 import 'package:load_switch/src/spinner.dart';
 
+enum _LoadSwitchMode { managed, controlled }
+
 @immutable
 class LoadSwitch extends StatefulWidget {
-  const LoadSwitch({
-    this.value,
-    this.future,
-    this.onChange,
+  const LoadSwitch.managed({
+    required this.value,
+    required this.onToggle,
+    required this.onChanged,
     this.onTap,
-    this.controller,
     this.style = SpinStyle.material,
     this.onError,
     this.width = 95,
@@ -20,64 +21,97 @@ class LoadSwitch extends StatefulWidget {
     this.spinColor,
     this.spinStrokeWidth = 2,
     this.thumbSizeRatio = 1,
-    this.animationDuration,
+    this.switchAnimationDuration = const Duration(milliseconds: 250),
+    this.spinnerAnimationDuration = const Duration(milliseconds: 1200),
     this.thumbDecoration,
     this.switchDecoration,
     this.curveIn,
     this.curveOut,
     this.isLoading,
-    this.isActive,
-    Key? key,
-  })  : assert(width >= height, "Width can't be less than the height."),
-        assert(thumbSizeRatio > 0 && thumbSizeRatio <= 1,
-            "Thumb size ratio must be between 0 and 1."),
+    this.isActive = true,
+    super.key,
+  })  : _mode = _LoadSwitchMode.managed,
+        controller = null,
+        assert(width >= height, "Width can't be less than the height."),
         assert(
-            (controller == null &&
-                    value != null &&
-                    future != null &&
-                    onChange != null) ||
-                (controller != null),
-            "Either provide a controller or all of value, future and onChange."),
-        super(key: key);
+          thumbSizeRatio > 0 && thumbSizeRatio <= 1,
+          'Thumb size ratio must be between 0 and 1.',
+        );
+
+  const LoadSwitch.controlled({
+    required this.controller,
+    this.onToggle,
+    this.onChanged,
+    this.onTap,
+    this.style = SpinStyle.material,
+    this.onError,
+    this.width = 95,
+    this.height = 50,
+    this.spinColor,
+    this.spinStrokeWidth = 2,
+    this.thumbSizeRatio = 1,
+    this.switchAnimationDuration = const Duration(milliseconds: 250),
+    this.spinnerAnimationDuration = const Duration(milliseconds: 1200),
+    this.thumbDecoration,
+    this.switchDecoration,
+    this.curveIn,
+    this.curveOut,
+    super.key,
+  })  : _mode = _LoadSwitchMode.controlled,
+        value = null,
+        isLoading = null,
+        isActive = null,
+        assert(width >= height, "Width can't be less than the height."),
+        assert(
+          thumbSizeRatio > 0 && thumbSizeRatio <= 1,
+          'Thumb size ratio must be between 0 and 1.',
+        );
+
+  final _LoadSwitchMode _mode;
 
   /// Controller to manage the switch state programmatically.
   ///
-  /// If provided, this controller takes precedence over the other state-related properties.
+  /// This is required for [LoadSwitch.controlled] and unused for
+  /// [LoadSwitch.managed].
   final LoadSwitchController? controller;
 
-  /// The width of the switch. Must be greater or equal to height. Defaults to 95.
+  /// Current value of the switch in managed mode.
+  final bool? value;
+
+  /// The async action triggered when the switch is toggled.
+  ///
+  /// If null in controlled mode, tapping the widget toggles the controller
+  /// immediately without entering a loading state.
+  final LoadSwitchToggleCallback? onToggle;
+
+  /// Called after the switch value changes.
+  final ValueChanged<bool>? onChanged;
+
+  /// Tap callback which returns the current value of the switch before toggling.
+  final ValueChanged<bool>? onTap;
+
+  /// The width of the switch. Must be greater than or equal to height.
   final double width;
 
-  /// The height of the switch. Must be less or equal to width. Defaults to 50.
+  /// The height of the switch. Must be less than or equal to width.
   final double height;
 
-  /// The main [Future] with [bool] return type, which triggers when tapping the switch.
-  ///
-  /// The returned value represents the new state of the switch.
-  final Future<bool> Function()? future;
-
-  /// The width of the loading spinner. Defaults to 2.
+  /// The width of the loading spinner stroke.
   final double spinStrokeWidth;
 
   /// The color of the loading spinner.
   final Color Function(bool value)? spinColor;
 
-  /// The callback when [future] has finished loading. Returns the response [bool] of the [future].
-  final Function(bool)? onChange;
+  /// The duration of the switch animation.
+  final Duration switchAnimationDuration;
 
-  /// Tap callback which returns the current value of the switch.
-  final Function(bool)? onTap;
+  /// The duration of the spinner animation.
+  final Duration spinnerAnimationDuration;
 
-  /// Current value of the switch.
-  final bool? value;
-
-  /// The duration of the switch animation. Defaults to 250ms.
-  final Duration? animationDuration;
-
-  /// The curve of the switch animation when going in loading state.
+  /// The curve of the switch animation when going into the loading state.
   final Curve? curveIn;
 
-  /// The curve of the switch animation when going out loading state.
+  /// The curve of the switch animation when going out of the loading state.
   final Curve? curveOut;
 
   /// The decoration of the switch.
@@ -86,118 +120,161 @@ class LoadSwitch extends StatefulWidget {
   /// The decoration of the thumb.
   final Decoration Function(bool value, bool isActive)? thumbDecoration;
 
-  /// Manually change the loading state of the switch.
+  /// Manually change the loading state of the switch in managed mode.
   final bool? isLoading;
 
-  /// Whether the toggle is active or not. If null, the switch will be active.
+  /// Whether the toggle is active in managed mode.
   final bool? isActive;
 
-  /// The ratio of the thumb size to the switch size. Defaults to 1.
+  /// The ratio of the thumb size to the switch size.
   final double thumbSizeRatio;
 
-  /// The callback when an error occurs during the [future] execution.
-  final Function(Object)? onError;
+  /// The callback when an error occurs during the toggle execution.
+  final LoadSwitchErrorCallback? onError;
 
-  /// The style of the loading spinner. Defaults to [SpinStyle.material].
+  /// The style of the loading spinner.
   final SpinStyle style;
 
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
 }
 
-class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
+class _LoadSwitchState extends State<LoadSwitch> {
+  static const Map<ShortcutActivator, Intent> _activationShortcuts =
+      <ShortcutActivator, Intent>{
+    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+    SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+  };
+
   late LoadSwitchController _controller;
-  bool _isControllerInternal = false;
+  int _toggleOperationId = 0;
+  bool _isManagedToggleInProgress = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeController();
+    _controller = _resolveController();
+    _syncManagedController();
   }
 
-  void _initializeController() {
-    if (widget.controller != null) {
-      _controller = widget.controller!;
-    } else {
-      _isControllerInternal = true;
-      _controller = LoadSwitchController(
-        initialValue: widget.value!,
-        isLoading: widget.isLoading ?? false,
-        isActive: widget.isActive ?? true,
-      );
+  LoadSwitchController _resolveController() {
+    if (widget._mode == _LoadSwitchMode.controlled) {
+      return widget.controller!;
     }
-    _controller.addListener(_handleControllerChange);
+    return LoadSwitchController(
+      initialValue: widget.value!,
+      isLoading: widget.isLoading ?? false,
+      isActive: widget.isActive ?? true,
+    );
   }
 
-  void _handleControllerChange() {
-    setState(() {
-      // Update the UI when the controller values change
-    });
+  void _syncManagedController() {
+    if (widget._mode != _LoadSwitchMode.managed) {
+      return;
+    }
+
+    if (_controller.value != widget.value) {
+      _controller.value = widget.value!;
+    }
+
+    final isLoading = widget.isLoading;
+    if (isLoading != null && _controller.isLoading != isLoading) {
+      _controller.isLoading = isLoading;
+    }
+
+    if (_controller.isActive != widget.isActive) {
+      _controller.isActive = widget.isActive!;
+    }
   }
 
   @override
   void didUpdateWidget(LoadSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?.removeListener(_handleControllerChange);
-      _controller.removeListener(_handleControllerChange);
+    final controllerChanged = widget._mode != oldWidget._mode ||
+        (widget._mode == _LoadSwitchMode.controlled &&
+            !identical(widget.controller, oldWidget.controller));
 
-      if (_isControllerInternal) {
-        _controller.dispose();
-      }
+    if (controllerChanged) {
+      final previousController = _controller;
+      _controller = _resolveController();
+      _toggleOperationId++;
+      _isManagedToggleInProgress = false;
 
-      _initializeController();
-    } else if (_isControllerInternal) {
-      // Update internal controller values if they changed externally
-      if (widget.value != null && _controller.value != widget.value) {
-        _controller.value = widget.value!;
+      if (oldWidget._mode == _LoadSwitchMode.managed) {
+        previousController.dispose();
       }
-      if (widget.isLoading != null &&
-          _controller.isLoading != widget.isLoading) {
-        _controller.isLoading = widget.isLoading!;
+    }
+
+    _syncManagedController();
+  }
+
+  Future<void> _handleToggle() async {
+    final controller = _controller;
+    if (_isLoading(controller) || !controller.isActive) {
+      return;
+    }
+
+    widget.onTap?.call(controller.value);
+
+    final onToggle = widget.onToggle;
+    if (onToggle == null) {
+      final previousValue = controller.value;
+      controller.toggle();
+      if (controller.value != previousValue) {
+        widget.onChanged?.call(controller.value);
       }
-      if (widget.isActive != null && _controller.isActive != widget.isActive) {
-        _controller.isActive = widget.isActive!;
+      return;
+    }
+
+    final operationId = ++_toggleOperationId;
+    if (widget._mode == _LoadSwitchMode.managed) {
+      setState(() {
+        _isManagedToggleInProgress = true;
+      });
+    } else {
+      controller.isLoading = true;
+    }
+
+    try {
+      final nextValue = await onToggle();
+      if (!_isCurrentOperation(controller, operationId)) {
+        return;
+      }
+      controller.value = nextValue;
+      widget.onChanged?.call(nextValue);
+    } catch (error, stackTrace) {
+      if (_isCurrentOperation(controller, operationId)) {
+        widget.onError?.call(error, stackTrace);
+      }
+    } finally {
+      if (_isCurrentOperation(controller, operationId)) {
+        if (widget._mode == _LoadSwitchMode.managed) {
+          setState(() {
+            _isManagedToggleInProgress = false;
+          });
+        } else {
+          controller.isLoading = false;
+        }
       }
     }
   }
 
-  Future<void> _handleToggle() async {
-    if (widget.onTap != null) {
-      widget.onTap!(_controller.value);
-    }
+  bool _isLoading(LoadSwitchController controller) {
+    return controller.isLoading || _isManagedToggleInProgress;
+  }
 
-    if (!_controller.isLoading && _controller.isActive) {
-      if (_isControllerInternal) {
-        _controller.isLoading = true;
-
-        try {
-          _controller.value = await widget.future!();
-          if (widget.onChange != null) {
-            widget.onChange!(_controller.value);
-          }
-        } catch (error) {
-          if (widget.onError != null) {
-            widget.onError!(error);
-          }
-        } finally {
-          _controller.isLoading = false;
-        }
-      } else {
-        await _controller.executeWithLoading(
-          widget.future ?? () async => !_controller.value,
-          onChange: widget.onChange,
-          onError: widget.onError,
-        );
-      }
-    }
+  bool _isCurrentOperation(LoadSwitchController controller, int operationId) {
+    return mounted &&
+        identical(_controller, controller) &&
+        _toggleOperationId == operationId;
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_handleControllerChange);
-    if (_isControllerInternal) {
+    _toggleOperationId++;
+    _isManagedToggleInProgress = false;
+    if (widget._mode == _LoadSwitchMode.managed) {
       _controller.dispose();
     }
     super.dispose();
@@ -208,50 +285,89 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
     final switchSize = widget.height;
     final collapsedWidth = switchSize;
     final expandedWidth = widget.width;
+    final thumbSize = switchSize * widget.thumbSizeRatio;
 
-    final value = _controller.value;
-    final loading = _controller.isLoading;
-    final isActive = _controller.isActive;
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        final value = _controller.value;
+        final loading = _isLoading(_controller);
+        final isActive = _controller.isActive;
+        final isEnabled = !loading && isActive;
 
-    return GestureDetector(
-      onTap: _handleToggle,
-      child: AnimatedContainer(
-        width: loading ? collapsedWidth : expandedWidth,
-        height: switchSize,
-        duration: widget.animationDuration ?? const Duration(milliseconds: 250),
-        curve: loading
-            ? widget.curveIn ?? Curves.easeIn
-            : widget.curveOut ?? Curves.easeInOut,
-        decoration: widget.switchDecoration?.call(value, isActive) ??
-            _defaultSwitchDecoration(value, isActive, switchSize),
-        child: Stack(
-          children: [
-            AnimatedAlign(
-              alignment: loading
-                  ? Alignment.center
-                  : value
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-              duration:
-                  widget.animationDuration ?? const Duration(milliseconds: 250),
-              curve: loading
-                  ? widget.curveIn ?? Curves.easeIn
-                  : widget.curveOut ?? Curves.easeInOut,
-              child: Padding(
-                padding: EdgeInsets.all(
-                    (switchSize - (switchSize * widget.thumbSizeRatio)) / 2),
-                child: _buildThumb(
-                    loading, value, switchSize * widget.thumbSizeRatio),
+        return Semantics(
+          container: true,
+          toggled: value,
+          enabled: isEnabled,
+          focusable: true,
+          onTap: isEnabled ? _handleToggle : null,
+          child: FocusableActionDetector(
+            enabled: isEnabled,
+            mouseCursor:
+                isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            shortcuts: _activationShortcuts,
+            actions: <Type, Action<Intent>>{
+              ActivateIntent: CallbackAction<ActivateIntent>(
+                onInvoke: (intent) {
+                  _handleToggle();
+                  return null;
+                },
+              ),
+            },
+            child: GestureDetector(
+              excludeFromSemantics: true,
+              behavior: HitTestBehavior.opaque,
+              onTap: isEnabled ? _handleToggle : null,
+              child: AnimatedContainer(
+                width: loading ? collapsedWidth : expandedWidth,
+                height: switchSize,
+                duration: widget.switchAnimationDuration,
+                curve: loading
+                    ? widget.curveIn ?? Curves.easeIn
+                    : widget.curveOut ?? Curves.easeInOut,
+                decoration: widget.switchDecoration?.call(value, isActive) ??
+                    _defaultSwitchDecoration(
+                      value,
+                      isActive,
+                      switchSize,
+                    ),
+                child: Stack(
+                  children: [
+                    AnimatedAlign(
+                      alignment: loading
+                          ? Alignment.center
+                          : value
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                      duration: widget.switchAnimationDuration,
+                      curve: loading
+                          ? widget.curveIn ?? Curves.easeIn
+                          : widget.curveOut ?? Curves.easeInOut,
+                      child: Padding(
+                        padding: EdgeInsets.all((switchSize - thumbSize) / 2),
+                        child: _buildThumb(
+                          loading: loading,
+                          value: value,
+                          isActive: isActive,
+                          size: thumbSize,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   BoxDecoration _defaultSwitchDecoration(
-      bool value, bool isActive, double switchSize) {
+    bool value,
+    bool isActive,
+    double switchSize,
+  ) {
     return BoxDecoration(
       color: isActive
           ? value
@@ -270,11 +386,16 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildThumb(bool loading, bool value, double size) {
+  Widget _buildThumb({
+    required bool loading,
+    required bool value,
+    required bool isActive,
+    required double size,
+  }) {
     return Container(
       width: size,
       height: size,
-      decoration: widget.thumbDecoration?.call(value, _controller.isActive) ??
+      decoration: widget.thumbDecoration?.call(value, isActive) ??
           BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -288,13 +409,14 @@ class _LoadSwitchState extends State<LoadSwitch> with TickerProviderStateMixin {
             ],
           ),
       child: loading
-          ? SpinnerWidget(
-              style: widget.style,
-              value: value,
-              size: widget.height,
-              width: widget.spinStrokeWidth,
-              color: widget.spinColor?.call(value),
-              animationDuration: widget.animationDuration,
+          ? Center(
+              child: SpinnerWidget(
+                style: widget.style,
+                size: size,
+                width: widget.spinStrokeWidth,
+                color: widget.spinColor?.call(value),
+                animationDuration: widget.spinnerAnimationDuration,
+              ),
             )
           : null,
     );
