@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:load_switch/load_switch.dart';
 
 class LoadSwitchControllerExample extends StatefulWidget {
-  const LoadSwitchControllerExample({Key? key}) : super(key: key);
+  const LoadSwitchControllerExample({super.key});
 
   @override
   State<LoadSwitchControllerExample> createState() =>
@@ -87,13 +87,13 @@ class _LoadSwitchControllerExampleState
             const SizedBox(height: 32),
 
             // The LoadSwitch
-            LoadSwitch(
+            LoadSwitch.controlled(
               controller: _controller,
-              future: _simulateAsyncOperation,
-              onChange: (value) {
+              onToggle: _simulateAsyncOperation,
+              onChanged: (value) {
                 log('LoadSwitch onChange callback: $value');
               },
-              onError: (error) {
+              onError: (error, stackTrace) {
                 log('LoadSwitch onError callback: $error');
               },
               style: SpinStyle.material,
@@ -126,8 +126,8 @@ class _LoadSwitchControllerExampleState
                 padding: EdgeInsets.all(16.0),
                 child: Text(
                   'This example shows how to use LoadSwitchController to '
-                  'programmatically control the switch state. The controller '
-                  'has retry functionality with exponential backoff enabled.',
+                  'programmatically control the switch state and optionally '
+                  'run async toggles with built-in loading management.',
                   textAlign: TextAlign.center,
                 ),
               ),

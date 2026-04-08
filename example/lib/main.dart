@@ -7,7 +7,7 @@ void main() {
 }
 
 class ExampleSelector extends StatelessWidget {
-  const ExampleSelector({Key? key}) : super(key: key);
+  const ExampleSelector({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class ExampleSelector extends StatelessWidget {
             _buildExampleCard(
               context,
               'Controller Example',
-              'Shows how to use LoadSwitchController with retry functionality.',
+              'Shows how to drive the switch with an external controller.',
               Icons.settings,
               Colors.blue,
               const LoadSwitchControllerExample(),

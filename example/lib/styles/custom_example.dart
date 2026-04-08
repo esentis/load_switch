@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:load_switch/load_switch.dart';
 
 class CustomStyleExample extends StatefulWidget {
-  const CustomStyleExample({Key? key}) : super(key: key);
+  const CustomStyleExample({super.key});
 
   @override
   State<CustomStyleExample> createState() => _CustomStyleExampleState();
@@ -12,9 +12,10 @@ class CustomStyleExample extends StatefulWidget {
 class _CustomStyleExampleState extends State<CustomStyleExample> {
   bool value = false;
   bool thumbStatus = true;
+
   Future<bool> _getFuture() async {
     if (kDebugMode) {
-      print('Calling futute...');
+      print('Calling future...');
     }
     await Future.delayed(const Duration(seconds: 2));
     // If you want to test the onError callback, uncomment the following line.
@@ -22,8 +23,7 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
     if (kDebugMode) {
       print('Future returned.');
     }
-    value = !value;
-    return value;
+    return !value;
   }
 
   @override
@@ -33,11 +33,11 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadSwitch(
+            LoadSwitch.managed(
               value: value,
               isActive: thumbStatus,
-              future: _getFuture,
-              onError: (error) {
+              onToggle: _getFuture,
+              onError: (error, stackTrace) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(error.toString()),
@@ -46,7 +46,8 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
               },
               curveIn: Curves.easeInBack,
               curveOut: Curves.easeOutBack,
-              animationDuration: const Duration(milliseconds: 500),
+              switchAnimationDuration: const Duration(milliseconds: 500),
+              spinnerAnimationDuration: const Duration(milliseconds: 900),
               switchDecoration: (value, isActive) => BoxDecoration(
                 color: isActive
                     ? value
@@ -89,7 +90,7 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
                   ),
                 ],
               ),
-              onChange: (v) {
+              onChanged: (v) {
                 value = v;
                 if (kDebugMode) {
                   print('Value changed to $v');
@@ -104,13 +105,15 @@ class _CustomStyleExampleState extends State<CustomStyleExample> {
             ),
             const SizedBox(height: 20),
             TextButton(
-                onPressed: () {
-                  setState(() {
-                    thumbStatus = !thumbStatus;
-                  });
-                },
-                child: Text(
-                    thumbStatus ? 'Deactivate toggle' : 'Activate toggle')),
+              onPressed: () {
+                setState(() {
+                  thumbStatus = !thumbStatus;
+                });
+              },
+              child: Text(
+                thumbStatus ? 'Deactivate toggle' : 'Activate toggle',
+              ),
+            ),
           ],
         ),
       ),
