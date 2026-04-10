@@ -26,241 +26,175 @@ class SpinnerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? Colors.blue;
-    late final Widget spinner;
-    switch (style) {
-      case SpinStyle.material:
-        spinner = CircularProgressIndicator(
+
+    final Widget spinner = switch (style) {
+      SpinStyle.material => CircularProgressIndicator(
           strokeWidth: width,
-          valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
-        );
-        break;
-      case SpinStyle.cupertino:
-        spinner = CupertinoActivityIndicator(radius: size * 0.24);
-        break;
-      case SpinStyle.chasingDots:
-        spinner = SpinKitChasingDots(
+          color: effectiveColor,
+        ),
+      SpinStyle.cupertino => CupertinoActivityIndicator(radius: size * 0.24),
+      SpinStyle.chasingDots => SpinKitChasingDots(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.circle:
-        spinner = SpinKitCircle(
+        ),
+      SpinStyle.circle => SpinKitCircle(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.cubeGrid:
-        spinner = SpinKitCubeGrid(
+        ),
+      SpinStyle.cubeGrid => SpinKitCubeGrid(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.dancingSquare:
-        spinner = SpinKitDancingSquare(
+        ),
+      SpinStyle.dancingSquare => SpinKitDancingSquare(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.doubleBounce:
-        spinner = SpinKitDoubleBounce(
+        ),
+      SpinStyle.doubleBounce => SpinKitDoubleBounce(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.dualRing:
-        spinner = SpinKitDualRing(
+        ),
+      SpinStyle.dualRing => SpinKitDualRing(
           color: effectiveColor,
           lineWidth: width,
-          duration: animationDuration,
           size: size,
-        );
-        break;
-      case SpinStyle.fadingCircle:
-        spinner = SpinKitFadingCircle(
+          duration: animationDuration,
+        ),
+      SpinStyle.fadingCircle => SpinKitFadingCircle(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.fadingCube:
-        spinner = SpinKitFadingCube(
-          color: effectiveColor,
-          duration: animationDuration,
-          size: size,
-        );
-        break;
-      case SpinStyle.fadingFour:
-        spinner = SpinKitFadingFour(
-          color: effectiveColor,
-          duration: animationDuration,
-          size: size,
-        );
-        break;
-      case SpinStyle.fadingGrid:
-        spinner = SpinKitFadingGrid(
-          color: effectiveColor,
-          duration: animationDuration,
-          size: size,
-        );
-        break;
-      case SpinStyle.foldingCube:
-        spinner = SpinKitFoldingCube(
-          color: effectiveColor,
-          duration: animationDuration,
-          size: size,
-        );
-        break;
-      case SpinStyle.hourGlass:
-        spinner = SpinKitHourGlass(
+        ),
+      SpinStyle.fadingCube => SpinKitFadingCube(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.pianoWave:
-        spinner = SpinKitPianoWave(
+        ),
+      SpinStyle.fadingFour => SpinKitFadingFour(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.pouringHourGlass:
-        spinner = SpinKitPouringHourGlass(
+        ),
+      SpinStyle.fadingGrid => SpinKitFadingGrid(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.pulse:
-        spinner = SpinKitPulse(
+        ),
+      SpinStyle.foldingCube => SpinKitFoldingCube(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.pulsingGrid:
-        spinner = SpinKitPulsingGrid(
+        ),
+      SpinStyle.hourGlass => SpinKitHourGlass(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.pumpingHeart:
-        spinner = SpinKitPumpingHeart(
+        ),
+      SpinStyle.pianoWave => SpinKitPianoWave(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.ring:
-        spinner = SpinKitRing(
+        ),
+      SpinStyle.pouringHourGlass => SpinKitPouringHourGlass(
+          color: effectiveColor,
+          size: size,
+          duration: animationDuration,
+        ),
+      SpinStyle.pulse => SpinKitPulse(
+          color: effectiveColor,
+          size: size,
+          duration: animationDuration,
+        ),
+      SpinStyle.pulsingGrid => SpinKitPulsingGrid(
+          color: effectiveColor,
+          size: size,
+          duration: animationDuration,
+        ),
+      SpinStyle.pumpingHeart => SpinKitPumpingHeart(
+          color: effectiveColor,
+          size: size,
+          duration: animationDuration,
+        ),
+      SpinStyle.ring => SpinKitRing(
           color: effectiveColor,
           size: size,
           lineWidth: width,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.ripple:
-        spinner = SpinKitRipple(
+        ),
+      SpinStyle.ripple => SpinKitRipple(
           color: effectiveColor,
           borderWidth: width,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.rotatingCircle:
-        spinner = SpinKitRotatingCircle(
+        ),
+      SpinStyle.rotatingCircle => SpinKitRotatingCircle(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.rotatingPlain:
-        spinner = SpinKitRotatingPlain(
+        ),
+      SpinStyle.rotatingPlain => SpinKitRotatingPlain(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.spinningCircle:
-        spinner = SpinKitSpinningCircle(
+        ),
+      SpinStyle.spinningCircle => SpinKitSpinningCircle(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.spinningLines:
-        spinner = SpinKitSpinningLines(
+        ),
+      SpinStyle.spinningLines => SpinKitSpinningLines(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.squareCircle:
-        spinner = SpinKitSquareCircle(
+        ),
+      SpinStyle.squareCircle => SpinKitSquareCircle(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.threeBounce:
-        spinner = SpinKitThreeBounce(
+        ),
+      SpinStyle.threeBounce => SpinKitThreeBounce(
           color: effectiveColor,
           size: size * 0.5,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.threeInOut:
-        spinner = SpinKitThreeInOut(
+        ),
+      SpinStyle.threeInOut => SpinKitThreeInOut(
           color: effectiveColor,
           size: size * 0.5,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.wanderingCubes:
-        spinner = SpinKitWanderingCubes(
+        ),
+      SpinStyle.wanderingCubes => SpinKitWanderingCubes(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.waveStart:
-        spinner = SpinKitWave(
+        ),
+      SpinStyle.waveStart => SpinKitWave(
           color: effectiveColor,
           size: size,
           type: SpinKitWaveType.start,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.waveCenter:
-        spinner = SpinKitWave(
+        ),
+      SpinStyle.waveCenter => SpinKitWave(
           color: effectiveColor,
           size: size,
           type: SpinKitWaveType.center,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.waveEnd:
-        spinner = SpinKitWave(
+        ),
+      SpinStyle.waveEnd => SpinKitWave(
           color: effectiveColor,
           size: size,
           type: SpinKitWaveType.end,
           duration: animationDuration,
-        );
-        break;
-      case SpinStyle.waveSpinner:
-        spinner = SpinKitWave(
+        ),
+      SpinStyle.waveSpinner => SpinKitWave(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
-        );
-        break;
-    }
+        ),
+    };
 
     return SizedBox.square(
       dimension: size,
