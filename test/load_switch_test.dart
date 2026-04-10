@@ -61,6 +61,23 @@ void main() {
       expect(controller.value, isFalse);
     });
 
+    test('executeWithLoading does not call onChanged when value is unchanged',
+        () async {
+      final controller = LoadSwitchController(initialValue: true);
+      final events = <String>[];
+
+      await controller.executeWithLoading(
+        () async => true, // returns the same value as current
+        onChanged: (value) {
+          events.add('changed:$value');
+        },
+      );
+
+      expect(controller.value, isTrue);
+      expect(events, isEmpty,
+          reason: 'onChanged must not fire when the value did not change');
+    });
+
     test('toggle respects active and loading state', () {
       final controller = LoadSwitchController(initialValue: false);
 
@@ -108,7 +125,8 @@ void main() {
       expect(value, isTrue);
     });
 
-    testWidgets('inactive managed switch blocks interaction', (
+    testWidgets(
+        'inactive managed switch fires onTap but blocks toggle and onChanged', (
       WidgetTester tester,
     ) async {
       var tapCount = 0;
@@ -132,7 +150,9 @@ void main() {
       await tester.tap(find.byType(LoadSwitch));
       await tester.pump();
 
-      expect(tapCount, 0);
+      // onTap fires so callers can show feedback (tooltip, snackbar, etc.)
+      // explaining why the switch is disabled.
+      expect(tapCount, 1);
       expect(toggleCount, 0);
     });
 
@@ -606,6 +626,40 @@ void main() {
       );
 
       semantics.dispose();
+    });
+
+    testWidgets(
+        'onChanged is not called when onToggle returns the current value', (
+      WidgetTester tester,
+    ) async {
+      bool value = false;
+      final events = <String>[];
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return LoadSwitch.managed(
+                value: value,
+                onToggle: () async => false, // returns same value as current
+                onChanged: (nextValue) {
+                  events.add('changed:$nextValue');
+                  setState(() {
+                    value = nextValue;
+                  });
+                },
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pumpAndSettle();
+
+      expect(value, isFalse);
+      expect(events, isEmpty,
+          reason: 'onChanged must not fire when value did not change');
     });
 
     testWidgets('keyboard activation toggles the switch', (
