@@ -92,11 +92,15 @@ class LoadSwitchController extends ChangeNotifier {
     isLoading = true;
 
     try {
-      value = await onToggle();
+      final nextValue = await onToggle();
       if (_isDisposed) {
         return;
       }
-      onChanged?.call(value);
+      final previousValue = _value;
+      value = nextValue;
+      if (!_isDisposed && _value != previousValue) {
+        onChanged?.call(_value);
+      }
     } catch (error, stackTrace) {
       if (_isDisposed) {
         return;

@@ -35,7 +35,7 @@ class LoadSwitch extends StatefulWidget {
         assert(width >= height, "Width can't be less than the height."),
         assert(
           thumbSizeRatio > 0 && thumbSizeRatio <= 1,
-          'Thumb size ratio must be between 0 and 1.',
+          'Thumb size ratio must be greater than 0 and at most 1.',
         );
 
   const LoadSwitch.controlled({
@@ -64,7 +64,7 @@ class LoadSwitch extends StatefulWidget {
         assert(width >= height, "Width can't be less than the height."),
         assert(
           thumbSizeRatio > 0 && thumbSizeRatio <= 1,
-          'Thumb size ratio must be between 0 and 1.',
+          'Thumb size ratio must be greater than 0 and at most 1.',
         );
 
   final _LoadSwitchMode _mode;
@@ -211,7 +211,17 @@ class _LoadSwitchState extends State<LoadSwitch> {
 
   Future<void> _handleToggle() async {
     final controller = _controller;
-    if (_isLoading(controller) || !controller.isActive) {
+
+    // Fire onTap whenever the user physically taps the switch, even if it is
+    // inactive. This allows callers to show feedback (e.g. a tooltip or snackbar)
+    // explaining why the switch is disabled. Loading is a transient lock — the
+    // spinner makes it visually obvious, so onTap is suppressed there.
+    if (!controller.isActive) {
+      widget.onTap?.call(controller.value);
+      return;
+    }
+
+    if (_isLoading(controller)) {
       return;
     }
 
@@ -241,8 +251,11 @@ class _LoadSwitchState extends State<LoadSwitch> {
       if (!_isCurrentOperation(controller, operationId)) {
         return;
       }
+      final previousValue = controller.value;
       controller.value = nextValue;
-      widget.onChanged?.call(nextValue);
+      if (controller.value != previousValue) {
+        widget.onChanged?.call(nextValue);
+      }
     } catch (error, stackTrace) {
       if (_isCurrentOperation(controller, operationId)) {
         widget.onError?.call(error, stackTrace);
@@ -317,7 +330,10 @@ class _LoadSwitchState extends State<LoadSwitch> {
             child: GestureDetector(
               excludeFromSemantics: true,
               behavior: HitTestBehavior.opaque,
-              onTap: isEnabled ? _handleToggle : null,
+              // Always route taps to _handleToggle so onTap can fire for
+              // inactive switches (e.g. to show a tooltip). Loading taps are
+              // still suppressed inside _handleToggle.
+              onTap: _isLoading(_controller) ? null : _handleToggle,
               child: AnimatedContainer(
                 width: loading ? collapsedWidth : expandedWidth,
                 height: switchSize,
