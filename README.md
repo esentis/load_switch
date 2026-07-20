@@ -100,6 +100,31 @@ LoadSwitch.managed(
 )
 ```
 
+## Accessibility
+
+The switch ships with switch-style semantics, keyboard activation (Enter and
+Space) and a focus indicator. Inactive switches stay reachable by keyboard so
+`onTap` can explain why they cannot be toggled, exactly as it does for taps.
+
+```dart
+LoadSwitch.managed(
+  value: value,
+  isActive: hasAccount,
+  onToggle: _toggle,
+  onChanged: (nextValue) => setState(() => value = nextValue),
+  onTap: (_) => _showReason(),
+  focusNode: _focusNode,
+  autofocus: true,
+  focusColor: Colors.indigo,
+  semanticLabel: 'Notifications',
+  loadingSemanticHint: 'Saving your preference',
+  disabledSemanticHint: 'Sign in to change this',
+)
+```
+
+The thumb is aligned directionally, so the switch mirrors itself automatically
+in right-to-left locales.
+
 ## Controller features
 
 You can use the `LoadSwitchController` to control and listen to the switch's state.
@@ -112,11 +137,16 @@ You can use the `LoadSwitchController` to control and listen to the switch's sta
 | `isLoading` (get/set)          | Get or set the loading state                                   |
 | `isActive` (get/set)           | Get or set whether the switch is active                        |
 | `addListener(listener)`        | Listen to state changes in the controller                      |
+| `clearLoadingAfterFrame()`     | Clear loading from widget teardown, notifying after the frame  |
 | `dispose()`                    | Clean up resources when no longer needed                       |
 
 ## Spin styles
 
 The library extends [flutter_spinkit](https://pub.dev/packages/flutter_spinkit) internally adding some fancy spin animations. Keep in mind you can also edit the `thumbDecoration` & `switchDecoration` for different color & shapes. The examples have the default circular thumb with white color. The default style is `SpinStyle.material`.
+
+`SpinStyle.material` and `SpinStyle.cupertino` render the platform's own
+indicators, which animate at a fixed rate, so `spinnerAnimationDuration` only
+affects the remaining SpinKit backed styles.
 
 | material                                                | cupertino                                                 | chasingDots                                                   |
 | ------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
