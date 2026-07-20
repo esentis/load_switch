@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:load_switch/src/load_switch_types.dart';
 
 /// Controller for managing the state of a [LoadSwitch] widget.
@@ -60,6 +61,25 @@ class LoadSwitchController extends ChangeNotifier {
       _isActive = active;
       notifyListeners();
     }
+  }
+
+  /// Clears the loading state, announcing it once the current frame is done.
+  ///
+  /// [LoadSwitch] hands loading back from `dispose` and `didUpdateWidget`,
+  /// which run while the widget tree is locked. Notifying listeners there lets
+  /// one of them call `setState` and trip a framework assertion, so the flag is
+  /// cleared immediately and the notification is deferred to the end of the
+  /// frame — early enough for any listener to still repaint in time.
+  void clearLoadingAfterFrame() {
+    if (_isDisposed || !_isLoading) {
+      return;
+    }
+    _isLoading = false;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+    });
   }
 
   /// Toggles the value of the switch if it's not loading and is active.
