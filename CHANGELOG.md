@@ -1,3 +1,42 @@
+### [3.1.0] Lifecycle, accessibility and spinner fixes
+
+#### Bug fixes
+
+- Fixes a caller-owned `LoadSwitchController` being left loading forever when a
+  `LoadSwitch.controlled` was disposed, changed mode, or had its controller
+  swapped while an async toggle was still in flight. The widget now tracks the
+  controller whose loading state it switched on and always hands it back
+- Fixes a managed switch staying loading forever after being rebuilt from
+  `isLoading: true` back to the default. An omitted `isLoading` now means "not
+  loading" instead of "do not synchronize"; loading driven by the widget's own
+  toggle is tracked separately and is unaffected
+- `SpinStyle.cupertino` now honors `spinColor` instead of ignoring it
+- `SpinStyle.waveSpinner` now renders `SpinKitWaveSpinner` instead of
+  duplicating `SpinStyle.waveStart`
+
+#### UI and accessibility
+
+- The thumb now uses directional alignment, so the switch lays out correctly in
+  right-to-left locales
+- Inactive switches are reachable by keyboard, so keyboard users get the same
+  `onTap` feedback pointer users already had
+- Adds a keyboard focus indicator, plus `focusNode`, `autofocus` and
+  `focusColor`
+- Adds `semanticLabel`, `loadingSemanticHint` and `disabledSemanticHint` for
+  configurable screen reader announcements
+
+#### Quality
+
+- Constructors now reject non-positive or non-finite `width`, `height` and
+  `spinStrokeWidth`, and negative animation durations
+- Documents that `spinnerAnimationDuration` does not affect the native Material
+  and Cupertino indicators, which animate at a fixed rate
+- Adds `LoadSwitchController.clearLoadingAfterFrame()`, used by the widget to
+  release loading during teardown without notifying listeners while the widget
+  tree is locked
+- Test suite grown from 23 to 47 tests; core library is now at 100% line
+  coverage
+
 ### [3.0.0] Major cleanup
 
 #### Breaking API changes
