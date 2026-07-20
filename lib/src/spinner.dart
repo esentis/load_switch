@@ -21,6 +21,12 @@ class SpinnerWidget extends StatelessWidget {
   final double size;
   final double width;
   final Color? color;
+
+  /// Drives the spin animation of every [SpinKit] based style.
+  ///
+  /// [SpinStyle.material] and [SpinStyle.cupertino] render the platform's own
+  /// indicators, which animate at a fixed rate, so this duration has no effect
+  /// on them.
   final Duration animationDuration;
 
   @override
@@ -32,7 +38,10 @@ class SpinnerWidget extends StatelessWidget {
           strokeWidth: width,
           color: effectiveColor,
         ),
-      SpinStyle.cupertino => CupertinoActivityIndicator(radius: size * 0.24),
+      SpinStyle.cupertino => CupertinoActivityIndicator(
+          radius: size * 0.24,
+          color: effectiveColor,
+        ),
       SpinStyle.chasingDots => SpinKitChasingDots(
           color: effectiveColor,
           size: size,
@@ -189,7 +198,7 @@ class SpinnerWidget extends StatelessWidget {
           type: SpinKitWaveType.end,
           duration: animationDuration,
         ),
-      SpinStyle.waveSpinner => SpinKitWave(
+      SpinStyle.waveSpinner => SpinKitWaveSpinner(
           color: effectiveColor,
           size: size,
           duration: animationDuration,
