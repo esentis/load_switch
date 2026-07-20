@@ -29,10 +29,28 @@ class LoadSwitch extends StatefulWidget {
     this.curveOut,
     this.isLoading,
     this.isActive = true,
+    this.focusNode,
+    this.autofocus = false,
+    this.focusColor,
+    this.semanticLabel,
+    this.loadingSemanticHint,
+    this.disabledSemanticHint,
     super.key,
   })  : _mode = _LoadSwitchMode.managed,
         controller = null,
+        assert(
+          width > 0 && width < double.infinity,
+          'Width must be a positive, finite value.',
+        ),
+        assert(
+          height > 0 && height < double.infinity,
+          'Height must be a positive, finite value.',
+        ),
         assert(width >= height, "Width can't be less than the height."),
+        assert(
+          spinStrokeWidth > 0 && spinStrokeWidth < double.infinity,
+          'Spin stroke width must be a positive, finite value.',
+        ),
         assert(
           thumbSizeRatio > 0 && thumbSizeRatio <= 1,
           'Thumb size ratio must be greater than 0 and at most 1.',
@@ -56,12 +74,30 @@ class LoadSwitch extends StatefulWidget {
     this.switchDecoration,
     this.curveIn,
     this.curveOut,
+    this.focusNode,
+    this.autofocus = false,
+    this.focusColor,
+    this.semanticLabel,
+    this.loadingSemanticHint,
+    this.disabledSemanticHint,
     super.key,
   })  : _mode = _LoadSwitchMode.controlled,
         value = null,
         isLoading = null,
         isActive = null,
+        assert(
+          width > 0 && width < double.infinity,
+          'Width must be a positive, finite value.',
+        ),
+        assert(
+          height > 0 && height < double.infinity,
+          'Height must be a positive, finite value.',
+        ),
         assert(width >= height, "Width can't be less than the height."),
+        assert(
+          spinStrokeWidth > 0 && spinStrokeWidth < double.infinity,
+          'Spin stroke width must be a positive, finite value.',
+        ),
         assert(
           thumbSizeRatio > 0 && thumbSizeRatio <= 1,
           'Thumb size ratio must be greater than 0 and at most 1.',
@@ -106,6 +142,10 @@ class LoadSwitch extends StatefulWidget {
   final Duration switchAnimationDuration;
 
   /// The duration of the spinner animation.
+  ///
+  /// [SpinStyle.material] and [SpinStyle.cupertino] use the platform's own
+  /// indicators, which animate at a fixed rate. This duration only affects the
+  /// remaining, SpinKit backed styles.
   final Duration spinnerAnimationDuration;
 
   /// The curve of the switch animation when going into the loading state.
@@ -121,6 +161,9 @@ class LoadSwitch extends StatefulWidget {
   final Decoration Function(bool value, bool isActive)? thumbDecoration;
 
   /// Manually change the loading state of the switch in managed mode.
+  ///
+  /// Defaults to `false` when omitted, so a switch that was rebuilt with
+  /// `isLoading: true` returns to its idle state once the flag is dropped.
   final bool? isLoading;
 
   /// Whether the toggle is active in managed mode.
@@ -134,6 +177,27 @@ class LoadSwitch extends StatefulWidget {
 
   /// The style of the loading spinner.
   final SpinStyle style;
+
+  /// An optional focus node to control keyboard focus externally.
+  final FocusNode? focusNode;
+
+  /// Whether the switch should grab focus when it is first shown.
+  final bool autofocus;
+
+  /// The color of the focus indicator drawn while the switch has keyboard
+  /// focus. Defaults to the ambient [ColorScheme.primary].
+  final Color? focusColor;
+
+  /// Semantic label announced by assistive technologies.
+  final String? semanticLabel;
+
+  /// Semantic hint announced while the switch is loading.
+  final String? loadingSemanticHint;
+
+  /// Semantic hint announced while the switch is inactive.
+  ///
+  /// Useful to explain why the switch cannot be toggled right now.
+  final String? disabledSemanticHint;
 
   @override
   State<LoadSwitch> createState() => _LoadSwitchState();
@@ -149,10 +213,26 @@ class _LoadSwitchState extends State<LoadSwitch> {
   late LoadSwitchController _controller;
   int _toggleOperationId = 0;
   bool _isManagedToggleInProgress = false;
+  bool _showFocusHighlight = false;
+
+  /// The controller whose loading flag this widget switched on.
+  ///
+  /// Controlled mode drives a caller-owned controller, so the widget has to
+  /// remember what it turned on in order to turn it back off — even when the
+  /// toggle outlives the widget or the controller is swapped mid-flight.
+  LoadSwitchController? _loadingOwner;
 
   @override
   void initState() {
     super.initState();
+    assert(
+      !widget.switchAnimationDuration.isNegative,
+      'switchAnimationDuration must not be negative.',
+    );
+    assert(
+      !widget.spinnerAnimationDuration.isNegative,
+      'spinnerAnimationDuration must not be negative.',
+    );
     _controller = _resolveController();
     _syncManagedController();
   }
@@ -177,14 +257,49 @@ class _LoadSwitchState extends State<LoadSwitch> {
       _controller.value = widget.value!;
     }
 
-    final isLoading = widget.isLoading;
-    if (isLoading != null && _controller.isLoading != isLoading) {
+    // An omitted `isLoading` means "not externally loading". Treating it as
+    // "don't sync" would strand the switch in a loading state forever once the
+    // caller stopped passing the flag. Loading driven by this widget's own
+    // toggle lives in [_isManagedToggleInProgress], so it survives this write.
+    final isLoading = widget.isLoading ?? false;
+    if (_controller.isLoading != isLoading) {
       _controller.isLoading = isLoading;
     }
 
     if (_controller.isActive != widget.isActive) {
       _controller.isActive = widget.isActive!;
     }
+  }
+
+  /// Switches [controller] into its loading state and records the ownership so
+  /// it can always be handed back.
+  void _acquireLoading(LoadSwitchController controller) {
+    _loadingOwner = controller;
+    controller.isLoading = true;
+  }
+
+  /// Clears a loading state previously switched on by this widget.
+  ///
+  /// Safe to call on a disposed controller: the setters are no-ops after
+  /// disposal.
+  void _releaseLoading() {
+    final owner = _loadingOwner;
+    if (owner == null) {
+      return;
+    }
+    _loadingOwner = null;
+    owner.isLoading = false;
+  }
+
+  /// Same as [_releaseLoading], but for `dispose` and `didUpdateWidget`, which
+  /// run while the widget tree is locked and cannot notify listeners inline.
+  void _releaseLoadingOnTeardown() {
+    final owner = _loadingOwner;
+    if (owner == null) {
+      return;
+    }
+    _loadingOwner = null;
+    owner.clearLoadingAfterFrame();
   }
 
   @override
@@ -197,6 +312,9 @@ class _LoadSwitchState extends State<LoadSwitch> {
 
     if (controllerChanged) {
       final previousController = _controller;
+      // Hand the loading state back before letting go of the old controller,
+      // otherwise a caller-owned one stays loading for the rest of its life.
+      _releaseLoadingOnTeardown();
       _controller = _resolveController();
       _toggleOperationId++;
       _isManagedToggleInProgress = false;
@@ -243,7 +361,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
         _isManagedToggleInProgress = true;
       });
     } else {
-      controller.isLoading = true;
+      _acquireLoading(controller);
     }
 
     try {
@@ -261,14 +379,18 @@ class _LoadSwitchState extends State<LoadSwitch> {
         widget.onError?.call(error, stackTrace);
       }
     } finally {
-      if (_isCurrentOperation(controller, operationId)) {
-        if (widget._mode == _LoadSwitchMode.managed) {
-          setState(() {
-            _isManagedToggleInProgress = false;
-          });
-        } else {
-          controller.isLoading = false;
-        }
+      // Release by ownership rather than by liveness: the loading flag must come
+      // back off even when this widget was disposed or re-pointed while the
+      // toggle was still running. Teardown may have released it already, in
+      // which case _loadingOwner no longer points at this controller.
+      if (identical(_loadingOwner, controller)) {
+        _releaseLoading();
+      }
+      if (_isManagedToggleInProgress &&
+          _isCurrentOperation(controller, operationId)) {
+        setState(() {
+          _isManagedToggleInProgress = false;
+        });
       }
     }
   }
@@ -287,6 +409,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
   void dispose() {
     _toggleOperationId++;
     _isManagedToggleInProgress = false;
+    _releaseLoadingOnTeardown();
     if (widget._mode == _LoadSwitchMode.managed) {
       _controller.dispose();
     }
@@ -307,18 +430,32 @@ class _LoadSwitchState extends State<LoadSwitch> {
         final loading = _isLoading(_controller);
         final isActive = _controller.isActive;
         final isEnabled = !loading && isActive;
+        // Only loading swallows input. Inactive switches still route to
+        // _handleToggle so onTap can explain why they cannot be toggled, and
+        // keyboard users get the same affordance as pointer users.
+        final acceptsInput = !loading;
 
         return Semantics(
           container: true,
           toggled: value,
           enabled: isEnabled,
           focusable: true,
-          onTap: isEnabled ? _handleToggle : null,
+          focused: _showFocusHighlight,
+          label: widget.semanticLabel,
+          hint: loading
+              ? widget.loadingSemanticHint
+              : isActive
+                  ? null
+                  : widget.disabledSemanticHint,
+          onTap: acceptsInput ? _handleToggle : null,
           child: FocusableActionDetector(
-            enabled: isEnabled,
+            enabled: acceptsInput,
+            focusNode: widget.focusNode,
+            autofocus: widget.autofocus,
             mouseCursor:
                 isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
             shortcuts: _activationShortcuts,
+            onShowFocusHighlight: _handleShowFocusHighlight,
             actions: <Type, Action<Intent>>{
               ActivateIntent: CallbackAction<ActivateIntent>(
                 onInvoke: (intent) {
@@ -330,10 +467,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
             child: GestureDetector(
               excludeFromSemantics: true,
               behavior: HitTestBehavior.opaque,
-              // Always route taps to _handleToggle so onTap can fire for
-              // inactive switches (e.g. to show a tooltip). Loading taps are
-              // still suppressed inside _handleToggle.
-              onTap: _isLoading(_controller) ? null : _handleToggle,
+              onTap: acceptsInput ? _handleToggle : null,
               child: AnimatedContainer(
                 width: loading ? collapsedWidth : expandedWidth,
                 height: switchSize,
@@ -351,10 +485,10 @@ class _LoadSwitchState extends State<LoadSwitch> {
                   children: [
                     AnimatedAlign(
                       alignment: loading
-                          ? Alignment.center
+                          ? AlignmentDirectional.center
                           : value
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                              ? AlignmentDirectional.centerEnd
+                              : AlignmentDirectional.centerStart,
                       duration: widget.switchAnimationDuration,
                       curve: loading
                           ? widget.curveIn ?? Curves.easeIn
@@ -369,6 +503,22 @@ class _LoadSwitchState extends State<LoadSwitch> {
                         ),
                       ),
                     ),
+                    if (_showFocusHighlight)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(switchSize / 2),
+                              border: Border.all(
+                                color: widget.focusColor ??
+                                    Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -377,6 +527,15 @@ class _LoadSwitchState extends State<LoadSwitch> {
         );
       },
     );
+  }
+
+  void _handleShowFocusHighlight(bool showHighlight) {
+    if (_showFocusHighlight == showHighlight) {
+      return;
+    }
+    setState(() {
+      _showFocusHighlight = showHighlight;
+    });
   }
 
   BoxDecoration _defaultSwitchDecoration(
