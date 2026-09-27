@@ -1,3 +1,38 @@
+### [3.2.0] Focus, ownership and callback fixes
+
+#### Bug fixes
+
+- Fixes keyboard focus being thrown off the switch as soon as a toggle started
+  loading. The switch now keeps focus, and its focus ring, for the whole
+  toggle, and no longer flips `canRequestFocus` on a caller-supplied
+  `focusNode`
+- Fixes a stale toggle releasing the loading state of a newer toggle on the
+  same controller (e.g. after swapping controllers A -> B -> A mid-flight),
+  which let a second toggle run concurrently. Loading ownership is now tracked
+  per toggle operation
+- `LoadSwitch.managed` now always shows the `value` its parent passes in. It
+  used to display the toggle result straight away, so a parent that declined
+  the change in `onChanged` saw the switch jump back on its next, unrelated
+  rebuild
+- Exceptions thrown by `onChanged` are no longer swallowed, or passed to
+  `onError` as if the toggle had failed. The widget reports them through
+  `FlutterError.reportError`, and
+  `LoadSwitchController.executeWithLoading()` completes its future with them
+- `LoadSwitchController.clearLoadingAfterFrame()` now requests a frame, so
+  listeners are notified even when it is called while the app is idle
+
+#### Behavior changes
+
+- `onChanged` now fires once loading has been cleared, both for the widget and
+  for `executeWithLoading()`
+- A switch that is loading ignores all input, keyboard included, so `onTap`
+  no longer fires for a switch that is both loading and inactive
+
+#### Performance
+
+- The keyboard activation actions are created once per state instead of on
+  every build
+
 ### [3.1.0] Lifecycle, accessibility and spinner fixes
 
 #### Bug fixes

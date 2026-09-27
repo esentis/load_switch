@@ -15,6 +15,9 @@ Show some love by dropping a ⭐ at GitHub </br>
 Use `LoadSwitch.managed` when your widget tree owns the current value and the
 switch should manage its own loading lifecycle around an async toggle.
 
+The switch always shows the `value` you pass in. Store the new value in
+`onChanged` and rebuild with it; not doing so rejects the change.
+
 ```dart
 bool value = false;
 
