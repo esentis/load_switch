@@ -120,7 +120,11 @@ class LoadSwitch extends StatefulWidget {
   /// immediately without entering a loading state.
   final LoadSwitchToggleCallback? onToggle;
 
-  /// Called after the switch value changes.
+  /// Called with the new value once a toggle changes it.
+  ///
+  /// In managed mode the parent owns the value: the switch only shows the new
+  /// value once it is rebuilt with it, so a parent that ignores this callback
+  /// effectively rejects the change.
   final ValueChanged<bool>? onChanged;
 
   /// Tap callback which returns the current value of the switch before toggling.
@@ -222,6 +226,21 @@ class _LoadSwitchState extends State<LoadSwitch> {
   /// toggle outlives the widget or the controller is swapped mid-flight.
   LoadSwitchController? _loadingOwner;
 
+  /// The toggle operation that switched [_loadingOwner] into loading.
+  ///
+  /// A stale toggle may finish after a newer one re-acquired the same
+  /// controller, so ownership is matched per operation, not per controller.
+  int? _loadingOperationId;
+
+  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
+    ActivateIntent: CallbackAction<ActivateIntent>(
+      onInvoke: (intent) {
+        _handleToggle();
+        return null;
+      },
+    ),
+  };
+
   @override
   void initState() {
     super.initState();
@@ -273,9 +292,14 @@ class _LoadSwitchState extends State<LoadSwitch> {
 
   /// Switches [controller] into its loading state and records the ownership so
   /// it can always be handed back.
-  void _acquireLoading(LoadSwitchController controller) {
+  void _acquireLoading(LoadSwitchController controller, int operationId) {
     _loadingOwner = controller;
+    _loadingOperationId = operationId;
     controller.isLoading = true;
+  }
+
+  bool _ownsLoading(int operationId) {
+    return _loadingOwner != null && _loadingOperationId == operationId;
   }
 
   /// Clears a loading state previously switched on by this widget.
@@ -288,6 +312,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
       return;
     }
     _loadingOwner = null;
+    _loadingOperationId = null;
     owner.isLoading = false;
   }
 
@@ -299,6 +324,7 @@ class _LoadSwitchState extends State<LoadSwitch> {
       return;
     }
     _loadingOwner = null;
+    _loadingOperationId = null;
     owner.clearLoadingAfterFrame();
   }
 
@@ -330,20 +356,20 @@ class _LoadSwitchState extends State<LoadSwitch> {
   Future<void> _handleToggle() async {
     final controller = _controller;
 
-    // Fire onTap whenever the user physically taps the switch, even if it is
-    // inactive. This allows callers to show feedback (e.g. a tooltip or snackbar)
-    // explaining why the switch is disabled. Loading is a transient lock — the
-    // spinner makes it visually obvious, so onTap is suppressed there.
-    if (!controller.isActive) {
-      widget.onTap?.call(controller.value);
-      return;
-    }
-
+    // Loading is a transient lock — the spinner makes it visually obvious, so
+    // every input, onTap included, is ignored while it lasts.
     if (_isLoading(controller)) {
       return;
     }
 
+    // Fire onTap whenever the user physically taps the switch, even if it is
+    // inactive. This allows callers to show feedback (e.g. a tooltip or snackbar)
+    // explaining why the switch is disabled.
     widget.onTap?.call(controller.value);
+
+    if (!controller.isActive) {
+      return;
+    }
 
     final onToggle = widget.onToggle;
     if (onToggle == null) {
@@ -361,18 +387,20 @@ class _LoadSwitchState extends State<LoadSwitch> {
         _isManagedToggleInProgress = true;
       });
     } else {
-      _acquireLoading(controller);
+      _acquireLoading(controller, operationId);
     }
 
+    bool? changedValue;
     try {
       final nextValue = await onToggle();
-      if (!_isCurrentOperation(controller, operationId)) {
-        return;
-      }
-      final previousValue = controller.value;
-      controller.value = nextValue;
-      if (controller.value != previousValue) {
-        widget.onChanged?.call(nextValue);
+      if (_isCurrentOperation(controller, operationId) &&
+          nextValue != controller.value) {
+        // In managed mode the parent owns the value and hands it back through
+        // a rebuild. Writing it here would show a value the parent may reject.
+        if (widget._mode == _LoadSwitchMode.controlled) {
+          controller.value = nextValue;
+        }
+        changedValue = nextValue;
       }
     } catch (error, stackTrace) {
       if (_isCurrentOperation(controller, operationId)) {
@@ -381,9 +409,9 @@ class _LoadSwitchState extends State<LoadSwitch> {
     } finally {
       // Release by ownership rather than by liveness: the loading flag must come
       // back off even when this widget was disposed or re-pointed while the
-      // toggle was still running. Teardown may have released it already, in
-      // which case _loadingOwner no longer points at this controller.
-      if (identical(_loadingOwner, controller)) {
+      // toggle was still running. Teardown, or a newer toggle on the same
+      // controller, may own it by now, in which case it is left alone.
+      if (_ownsLoading(operationId)) {
         _releaseLoading();
       }
       if (_isManagedToggleInProgress &&
@@ -392,6 +420,27 @@ class _LoadSwitchState extends State<LoadSwitch> {
           _isManagedToggleInProgress = false;
         });
       }
+    }
+
+    // Outside the try, so a throwing onChanged is neither swallowed nor passed
+    // to onError as if the toggle itself had failed.
+    if (changedValue != null) {
+      _notifyChanged(changedValue);
+    }
+  }
+
+  void _notifyChanged(bool value) {
+    try {
+      widget.onChanged?.call(value);
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'load_switch',
+          context: ErrorDescription('while calling LoadSwitch.onChanged'),
+        ),
+      );
     }
   }
 
@@ -448,22 +497,17 @@ class _LoadSwitchState extends State<LoadSwitch> {
                   ? null
                   : widget.disabledSemanticHint,
           onTap: acceptsInput ? _handleToggle : null,
+          // Always enabled: disabling it while loading would revoke
+          // canRequestFocus and throw keyboard focus off the switch mid-toggle.
+          // _handleToggle ignores activation while loading instead.
           child: FocusableActionDetector(
-            enabled: acceptsInput,
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
             mouseCursor:
                 isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
             shortcuts: _activationShortcuts,
             onShowFocusHighlight: _handleShowFocusHighlight,
-            actions: <Type, Action<Intent>>{
-              ActivateIntent: CallbackAction<ActivateIntent>(
-                onInvoke: (intent) {
-                  _handleToggle();
-                  return null;
-                },
-              ),
-            },
+            actions: _actions,
             child: GestureDetector(
               excludeFromSemantics: true,
               behavior: HitTestBehavior.opaque,

@@ -78,6 +78,52 @@ void main() {
           reason: 'onChanged must not fire when the value did not change');
     });
 
+    test('executeWithLoading surfaces onChanged errors instead of onError',
+        () async {
+      final controller = LoadSwitchController(initialValue: false);
+      final toggleErrors = <Object>[];
+
+      await expectLater(
+        controller.executeWithLoading(
+          () async => true,
+          onChanged: (_) => throw StateError('bug in the caller'),
+          onError: (error, _) => toggleErrors.add(error),
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(controller.value, isTrue);
+      expect(controller.isLoading, isFalse);
+      expect(
+        toggleErrors,
+        isEmpty,
+        reason: 'onError must not claim a successful toggle failed',
+      );
+    });
+
+    testWidgets('clearLoadingAfterFrame notifies even when no frame is pending',
+        (
+      WidgetTester tester,
+    ) async {
+      final controller = LoadSwitchController(isLoading: true);
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      controller.clearLoadingAfterFrame();
+
+      expect(controller.isLoading, isFalse);
+      expect(notifications, 0, reason: 'the notification is deferred');
+      expect(
+        tester.binding.hasScheduledFrame,
+        isTrue,
+        reason: 'listeners would otherwise wait for an unrelated frame',
+      );
+
+      await tester.pump();
+      expect(notifications, 1);
+    });
+
     test('toggle respects active and loading state', () {
       final controller = LoadSwitchController(initialValue: false);
 
@@ -123,6 +169,107 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(value, isTrue);
+      expect(_thumbOffset(tester), greaterThan(0), reason: 'shows as on');
+    });
+
+    testWidgets(
+        'managed switch shows the parent value, not a rejected toggle result', (
+      WidgetTester tester,
+    ) async {
+      var rebuildTick = 0;
+      final changes = <bool>[];
+      late StateSetter setParentState;
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              setParentState = setState;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('tick:$rebuildTick'),
+                  LoadSwitch.managed(
+                    // The parent owns the value and declines the change.
+                    value: false,
+                    onToggle: () async => true,
+                    onChanged: changes.add,
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pumpAndSettle();
+
+      expect(changes, <bool>[true]);
+      final afterToggle = _thumbOffset(tester);
+
+      // An unrelated parent rebuild.
+      setParentState(() => rebuildTick++);
+      await tester.pumpAndSettle();
+
+      expect(
+        _thumbOffset(tester),
+        afterToggle,
+        reason: 'the displayed value must not depend on unrelated rebuilds',
+      );
+      expect(afterToggle, lessThan(0), reason: 'the parent value is off');
+    });
+
+    testWidgets('an exception thrown by onChanged is reported, not swallowed', (
+      WidgetTester tester,
+    ) async {
+      final controller = LoadSwitchController(initialValue: false);
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          LoadSwitch.controlled(
+            controller: controller,
+            onToggle: () async => true,
+            onChanged: (_) => throw StateError('bug in the caller'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pumpAndSettle();
+
+      expect(controller.value, isTrue);
+      expect(controller.isLoading, isFalse);
+      expect(tester.takeException(), isA<StateError>());
+    });
+
+    testWidgets('onChanged failures are not reported as toggle failures', (
+      WidgetTester tester,
+    ) async {
+      final controller = LoadSwitchController(initialValue: false);
+      final toggleErrors = <Object>[];
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          LoadSwitch.controlled(
+            controller: controller,
+            onToggle: () async => true,
+            onChanged: (_) => throw StateError('bug in the caller'),
+            onError: (error, _) => toggleErrors.add(error),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isA<StateError>());
+
+      expect(controller.value, isTrue, reason: 'the toggle itself succeeded');
+      expect(
+        toggleErrors,
+        isEmpty,
+        reason: 'onError must not claim a successful toggle failed',
+      );
     });
 
     testWidgets(
@@ -869,8 +1016,8 @@ void main() {
       expect(second.value, isFalse);
     });
 
-    testWidgets('mode change from controlled to managed releases the controller',
-        (
+    testWidgets(
+        'mode change from controlled to managed releases the controller', (
       WidgetTester tester,
     ) async {
       final controller = LoadSwitchController(initialValue: false);
@@ -943,7 +1090,65 @@ void main() {
       expect(controller.value, isTrue);
     });
 
-    testWidgets('releasing on teardown tolerates listeners that call setState', (
+    testWidgets(
+        'a stale toggle does not release loading owned by a newer toggle '
+        'after swapping controllers A -> B -> A', (
+      WidgetTester tester,
+    ) async {
+      final a = LoadSwitchController(initialValue: false);
+      final b = LoadSwitchController(initialValue: false);
+      final first = Completer<bool>();
+      final second = Completer<bool>();
+      var toggleCount = 0;
+
+      Widget build(LoadSwitchController controller) => _wrapWithApp(
+            LoadSwitch.controlled(
+              controller: controller,
+              onToggle: () {
+                toggleCount++;
+                return toggleCount == 1 ? first.future : second.future;
+              },
+            ),
+          );
+
+      await tester.pumpWidget(build(a));
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pump();
+
+      await tester.pumpWidget(build(b));
+      await tester.pumpWidget(build(a));
+      await tester.pump();
+      expect(a.isLoading, isFalse);
+
+      // A second toggle on the same controller.
+      await tester.tap(find.byType(LoadSwitch));
+      await tester.pump();
+      expect(a.isLoading, isTrue);
+
+      // The stale first toggle finishes while the second is still running.
+      first.complete(true);
+      await tester.pump();
+
+      expect(a.isLoading, isTrue, reason: 'the second toggle is in flight');
+      expect(a.value, isFalse, reason: 'a stale result must not be applied');
+
+      await tester.tap(find.byType(LoadSwitch), warnIfMissed: false);
+      await tester.pump();
+      expect(
+        toggleCount,
+        2,
+        reason: 'no third toggle may start while the second is in flight',
+      );
+
+      second.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(a.isLoading, isFalse);
+      expect(a.value, isTrue);
+    });
+
+    testWidgets('releasing on teardown tolerates listeners that call setState',
+        (
       WidgetTester tester,
     ) async {
       final controller = LoadSwitchController(initialValue: false);
@@ -1187,6 +1392,87 @@ void main() {
       expect(toggleCount, 0);
     });
 
+    testWidgets('keyboard focus survives an async toggle', (
+      WidgetTester tester,
+    ) async {
+      final completer = Completer<bool>();
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+      var tapCount = 0;
+      var toggleCount = 0;
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          FocusTraversalGroup(
+            child: LoadSwitch.managed(
+              value: false,
+              focusNode: focusNode,
+              onTap: (_) => tapCount++,
+              onToggle: () {
+                toggleCount++;
+                return completer.future;
+              },
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusNode.hasFocus, isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+
+      expect(
+        focusNode.hasFocus,
+        isTrue,
+        reason: 'activating the switch from the keyboard must not drop focus',
+      );
+      expect(_focusRingFinder(), findsOneWidget);
+
+      // Activation while loading is still ignored.
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(tapCount, 1);
+      expect(toggleCount, 1);
+
+      completer.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(focusNode.hasFocus, isTrue);
+      expect(focusNode.canRequestFocus, isTrue);
+    });
+
+    testWidgets('a loading, inactive switch ignores activation entirely', (
+      WidgetTester tester,
+    ) async {
+      var tapCount = 0;
+
+      await tester.pumpWidget(
+        _wrapWithApp(
+          FocusTraversalGroup(
+            child: LoadSwitch.managed(
+              value: false,
+              isActive: false,
+              isLoading: true,
+              onTap: (_) => tapCount++,
+              onToggle: () async => true,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+
+      expect(tapCount, 0, reason: 'loading suppresses onTap for every input');
+    });
+
     testWidgets('a focus indicator is drawn while focused', (
       WidgetTester tester,
     ) async {
@@ -1378,6 +1664,12 @@ Widget _wrapWithApp(Widget child, {TextDirection? textDirection}) {
           : Directionality(textDirection: textDirection, child: body),
     ),
   );
+}
+
+/// Horizontal offset of the thumb from the switch center: positive is right.
+double _thumbOffset(WidgetTester tester) {
+  final switchCenter = tester.getCenter(find.byType(AnimatedContainer));
+  return tester.getCenter(_thumbFinder()).dx - switchCenter.dx;
 }
 
 /// The thumb is the only [Container] living underneath the [AnimatedAlign].

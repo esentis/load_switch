@@ -75,11 +75,15 @@ class LoadSwitchController extends ChangeNotifier {
       return;
     }
     _isLoading = false;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    final scheduler = SchedulerBinding.instance;
+    scheduler.addPostFrameCallback((_) {
       if (!_isDisposed) {
         notifyListeners();
       }
     });
+    // Post-frame callbacks do not request a frame on their own. Outside of a
+    // frame, listeners would otherwise wait for an unrelated one.
+    scheduler.ensureVisualUpdate();
   }
 
   /// Toggles the value of the switch if it's not loading and is active.
@@ -98,8 +102,10 @@ class LoadSwitchController extends ChangeNotifier {
   /// the future completes or throws an error. Updates the value of the switch
   /// based on the result of the future.
   ///
-  /// If [onChanged] is provided, it will be called with the new value.
-  /// If [onError] is provided, it will be called with any error that occurs.
+  /// If [onChanged] is provided, it will be called with the new value once
+  /// loading has been cleared. If [onError] is provided, it will be called
+  /// with any error thrown by [onToggle]. Errors thrown by [onChanged] itself
+  /// are not treated as toggle failures and complete the returned future.
   Future<void> executeWithLoading(
     LoadSwitchToggleCallback onToggle, {
     ValueChanged<bool>? onChanged,
@@ -111,25 +117,25 @@ class LoadSwitchController extends ChangeNotifier {
 
     isLoading = true;
 
+    bool? changedValue;
     try {
       final nextValue = await onToggle();
-      if (_isDisposed) {
-        return;
-      }
-      final previousValue = _value;
-      value = nextValue;
-      if (!_isDisposed && _value != previousValue) {
-        onChanged?.call(_value);
+      if (!_isDisposed && _value != nextValue) {
+        value = nextValue;
+        changedValue = nextValue;
       }
     } catch (error, stackTrace) {
-      if (_isDisposed) {
-        return;
+      if (!_isDisposed) {
+        onError?.call(error, stackTrace);
       }
-      onError?.call(error, stackTrace);
     } finally {
       if (!_isDisposed) {
         isLoading = false;
       }
+    }
+
+    if (changedValue != null) {
+      onChanged?.call(changedValue);
     }
   }
 
